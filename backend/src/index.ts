@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { Server as SocketIOServer } from 'socket.io';
 import { MQTTIngestionService } from './services/mqtt.service';
 import authRoutes from './routes/auth.routes';
+import gateRoutes from './routes/gate.routes';
 import ticketRoutes from './routes/ticket.routes';
 
 dotenv.config();
@@ -22,6 +23,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 
 app.use('/api/tickets', ticketRoutes);
+
+app.use('/api/gates', gateRoutes);
 
 // Initialize MQTT Ingestion Engine
 new MQTTIngestionService(io);
