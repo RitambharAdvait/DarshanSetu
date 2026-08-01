@@ -77,3 +77,15 @@ model Incident {
   resolved    Boolean          @default(false)
   createdAt   DateTime         @default(now())
 }
+
+model Forecast {
+  id             String   @id @default(uuid())
+  siteId         String
+  date           DateTime
+  predictedCount Int
+  lowerBound     Int
+  upperBound     Int
+  createdAt      DateTime @default(now())
+
+  @@unique([siteId, date])
+}
