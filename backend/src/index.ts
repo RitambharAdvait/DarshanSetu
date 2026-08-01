@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes';
 import gateRoutes from './routes/gate.routes';
 import ticketRoutes from './routes/ticket.routes';
 import incidentRoutes from './routes/incident.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 
 dotenv.config();
@@ -29,6 +30,8 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/gates', gateRoutes);
 
 app.use('/api/incidents', incidentRoutes);
+
+app.use('/api/analytics', analyticsRoutes);
 
 // Initialize MQTT Ingestion Engine
 new MQTTIngestionService(io);
