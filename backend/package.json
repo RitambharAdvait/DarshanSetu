@@ -1,7 +1,7 @@
 {
-  "name": "kshemyatra-backend",
+  "name": "darshansetu-backend",
   "version": "1.0.0",
-  "description": "KshemYatra Core Backend Engine",
+  "description": "DarshanSetu Core Backend Engine",
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --watch src -e ts --exec ts-node src/index.ts",

@@ -3,9 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgis/postgis:15-3.3
-    container_name: kshemyatra_postgres
+    container_name: darshansetu_postgres
     environment:
-      POSTGRES_DB: kshemyatra
+      POSTGRES_DB: darshansetu
       POSTGRES_USER: kshem_admin
       POSTGRES_PASSWORD: kshem_password
     ports:
@@ -15,13 +15,13 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: kshemyatra_redis
+    container_name: darshansetu_redis
     ports:
       - "6379:6379"
 
   mqtt:
     image: eclipse-mosquitto:2
-    container_name: kshemyatra_mqtt
+    container_name: darshansetu_mqtt
     ports:
       - "1883:1883"
       - "9001:9001"
