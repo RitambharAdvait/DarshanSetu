@@ -41,10 +41,16 @@ export const getIncidentRecommendations = (input: RecommendationInput): Promise<
         return reject(new Error(`Python process failed with code ${code}. Error: ${stderrData}`));
       }
       try {
-        const result = JSON.parse(stdoutData.trim());
+        const jsonStart = stdoutData.indexOf('{');
+        const jsonEnd = stdoutData.lastIndexOf('}') + 1;
+        if (jsonStart === -1 || jsonEnd === 0) {
+          throw new Error("No JSON payload found in stdout");
+        }
+        const jsonString = stdoutData.substring(jsonStart, jsonEnd);
+        const result = JSON.parse(jsonString);
         resolve(result);
-      } catch (err) {
-        reject(new Error(`Failed to parse Python stdout: ${stdoutData}`));
+      } catch (err: any) {
+        reject(new Error(`Failed to parse Python stdout. Error: ${err.message}. Raw: ${stdoutData}`));
       }
     });
 

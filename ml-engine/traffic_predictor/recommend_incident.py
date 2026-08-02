@@ -118,9 +118,9 @@ def main():
     # Return payload
     output = {
         'predicted_duration': round(predicted_duration, 1),
-        'recommended_marshals': recs['recommended_marshals'],
-        'recommended_barricading': recs['recommended_barricading'],
-        'recommended_diversion': recs['recommended_diversion']
+        'recommended_marshals': recs['marshals'],
+        'recommended_barricading': recs['barricading'],
+        'recommended_diversion': recs['diversion']
     }
     
     print(json.dumps(output))
