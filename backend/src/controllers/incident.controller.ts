@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { getIncidentRecommendations } from '../services/recommendation.service';
 
 const prisma = new PrismaClient();
 
@@ -30,5 +31,73 @@ export const raiseSOS = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to log SOS incident' });
+  }
+};
+
+// POST /api/incidents/:id/recommend
+export const getRecommendation = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const incident = await prisma.incident.findUnique({ where: { id } });
+    if (!incident) return res.status(404).json({ error: 'Incident not found' });
+
+    // Call Python recommender
+    const recommendations = await getIncidentRecommendations({
+      lat: incident.lat || 12.9716,
+      lng: incident.lng || 77.5946,
+      type: incident.type,
+      severity: incident.severity,
+    });
+
+    // Update database row
+    const updatedIncident = await prisma.incident.update({
+      where: { id },
+      data: {
+        suggestedDuration: recommendations.predicted_duration,
+        suggestedMarshals: recommendations.recommended_marshals,
+        suggestedBarricades: recommendations.recommended_barricading,
+        suggestedDiversion: recommendations.recommended_diversion,
+      },
+    });
+
+    res.json({
+      message: 'Recommendations generated successfully',
+      recommendations,
+      incident: updatedIncident,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Failed to generate recommendations' });
+  }
+};
+
+// PUT /api/incidents/:id/feedback
+export const submitFeedback = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { actualDuration, actualMarshals, actualBarricades, actualDiversion } = req.body;
+
+  try {
+    const incident = await prisma.incident.findUnique({ where: { id } });
+    if (!incident) return res.status(404).json({ error: 'Incident not found' });
+
+    // Determine if operator overrode suggested values
+    const overridden = 
+      (actualMarshals !== undefined && actualMarshals !== incident.suggestedMarshals) ||
+      (actualBarricades !== undefined && actualBarricades !== incident.suggestedBarricades) ||
+      (actualDiversion !== undefined && actualDiversion !== incident.suggestedDiversion);
+
+    const updatedIncident = await prisma.incident.update({
+      where: { id },
+      data: {
+        actualDuration,
+        operatorOverrides: overridden,
+      },
+    });
+
+    res.json({
+      message: 'Feedback submitted successfully',
+      incident: updatedIncident,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to submit operator feedback' });
   }
 };
