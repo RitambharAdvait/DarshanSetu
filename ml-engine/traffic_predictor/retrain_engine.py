@@ -1,71 +1,94 @@
-import sqlite3
+import sys
+import json
 import pandas as pd
 import numpy as np
 import os
 import datetime
-from recommender import DB_PATH
 from model import train_hybrid_ensemble
+
+def get_input_mapping(incident_type, severity):
+    inc_type = str(incident_type).upper()
+    sev = str(severity).upper()
+
+    event_type = 'unplanned'
+    event_cause = 'others'
+    priority = 'low'
+    requires_road_closure = 'false'
+
+    if inc_type == 'STAMPEDE_PRECURSOR':
+        event_cause = 'congestion'
+        priority = 'high'
+        requires_road_closure = 'true'
+    elif inc_type == 'MEDICAL_FALL':
+        event_cause = 'road_conditions'
+    elif inc_type == 'SOS_MANUAL':
+        priority = 'high'
+
+    if sev == 'CRITICAL':
+        priority = 'high'
+
+    return event_type, event_cause, priority, requires_road_closure
 
 def run_retraining():
     print("Starting closed-loop ML retraining engine...")
-    conn = sqlite3.connect(DB_PATH)
     
-    # Query joined feedback and recommendations
-    query = """
-        SELECT r.event_type, r.event_cause, r.requires_road_closure, r.priority, 
-               r.police_station, r.corridor, r.zone, r.junction, r.latitude, r.longitude, 
-               r.timestamp, f.actual_duration
-        FROM feedback f
-        JOIN recommendations r ON f.event_id = r.id
-    """
+    # Read feedback incidents JSON array from stdin passed from Node.js
     try:
-        feedback_df = pd.read_sql_query(query, conn)
+        feedback_list = json.loads(sys.stdin.read())
     except Exception as e:
-        print(f"Error reading database: {e}")
-        feedback_df = pd.DataFrame()
-    finally:
-        conn.close()
+        print(f"Error reading stdin: {e}")
+        return False
         
-    base_file = r"flip.csv"
+    base_file = "flip.csv"
     if not os.path.exists(base_file):
         print(f"Base training file {base_file} not found. Cannot proceed with retraining.")
         return False
         
     print(f"Baseline training records: {pd.read_csv(base_file).shape[0]}")
-    print(f"New operator feedback records: {len(feedback_df)}")
+    print(f"New operator feedback records: {len(feedback_list)}")
     
-    if len(feedback_df) > 0:
-        # Convert feedback rows into baseline flip.csv format
+    if len(feedback_list) > 0:
         new_rows = []
-        for _, row in feedback_df.iterrows():
-            try:
-                start_dt = pd.to_datetime(row['timestamp'])
-            except:
+        for idx, item in enumerate(feedback_list):
+            lat = float(item.get('lat', 12.9716))
+            lng = float(item.get('lng', 77.5946))
+            incident_type = item.get('type', 'SOS_MANUAL')
+            severity = item.get('severity', 'WARNING')
+            actual_dur = max(1.0, float(item.get('actualDuration', 30.0)))
+            
+            event_type, event_cause, priority, requires_road_closure = get_input_mapping(incident_type, severity)
+            
+            # Formulate start and resolved datetimes
+            created_at_str = item.get('createdAt')
+            if created_at_str:
+                try:
+                    start_dt = pd.to_datetime(created_at_str)
+                except:
+                    start_dt = datetime.datetime.now()
+            else:
                 start_dt = datetime.datetime.now()
                 
-            actual_dur = max(1.0, float(row['actual_duration']))
             resolved_dt = start_dt + datetime.timedelta(minutes=actual_dur)
             
             new_rows.append({
                 'id': f"FEEDBACK_{np.random.randint(100000, 999999)}",
-                'event_type': str(row['event_type']).lower(),
-                'event_cause': str(row['event_cause']).lower(),
-                'requires_road_closure': str(row['requires_road_closure']).lower(),
-                'priority': str(row['priority']).lower(),
-                'police_station': str(row['police_station']).lower(),
-                'corridor': str(row['corridor']).lower(),
-                'zone': str(row['zone']).lower(),
-                'junction': str(row['junction']).lower(),
-                'latitude': float(row['latitude']),
-                'longitude': float(row['longitude']),
+                'event_type': event_type,
+                'event_cause': event_cause,
+                'requires_road_closure': requires_road_closure,
+                'priority': priority,
+                'police_station': 'unknown',
+                'corridor': 'unknown',
+                'zone': 'unknown',
+                'junction': 'unknown',
+                'latitude': lat,
+                'longitude': lng,
                 'start_datetime': start_dt.strftime('%Y-%m-%d %H:%M:%S'),
                 'resolved_datetime': resolved_dt.strftime('%Y-%m-%d %H:%M:%S'),
                 'closed_datetime': "",
-                'description': "Operator validated actual feed."
+                'description': "Operator validated actual feedback."
             })
             
         new_df = pd.DataFrame(new_rows)
-        # Read base file and append new rows
         base_df = pd.read_csv(base_file)
         merged_df = pd.concat([base_df, new_df], ignore_index=True)
         temp_file = 'temp_merged_training_data.csv'
@@ -84,7 +107,7 @@ def run_retraining():
                 os.remove(temp_file)
         return success
     else:
-        print("No new feedback samples in database. Re-running baseline model training...")
+        print("No feedback samples received. Training on baseline data...")
         try:
             train_hybrid_ensemble(base_file)
             print("Baseline model weights successfully updated.")

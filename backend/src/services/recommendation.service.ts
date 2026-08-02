@@ -59,3 +59,37 @@ export const getIncidentRecommendations = (input: RecommendationInput): Promise<
     pyProcess.stdin.end();
   });
 };
+
+export const triggerModelRetraining = (feedbackList: any[]): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.resolve(__dirname, '../../../ml-engine/traffic_predictor/retrain_engine.py');
+    const pythonEnvPath = path.resolve(__dirname, '../../../ml-engine/venv/Scripts/python.exe');
+
+    // Spawn Python retraining process
+    const pyProcess = spawn(pythonEnvPath, [scriptPath], {
+      cwd: path.dirname(scriptPath),
+    });
+
+    let stdoutData = '';
+    let stderrData = '';
+
+    pyProcess.stdout.on('data', (data) => {
+      stdoutData += data.toString();
+    });
+
+    pyProcess.stderr.on('data', (data) => {
+      stderrData += data.toString();
+    });
+
+    pyProcess.on('close', (code) => {
+      if (code !== 0) {
+        return reject(new Error(`Retraining process failed with code ${code}. Error: ${stderrData}`));
+      }
+      resolve(stdoutData.trim());
+    });
+
+    // Write feedback list as JSON to Python stdin
+    pyProcess.stdin.write(JSON.stringify(feedbackList));
+    pyProcess.stdin.end();
+  });
+};

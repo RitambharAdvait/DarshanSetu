@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { getIncidentRecommendations } from '../services/recommendation.service';
+import { getIncidentRecommendations, triggerModelRetraining } from '../services/recommendation.service';
+
 
 const prisma = new PrismaClient();
 
@@ -88,10 +89,32 @@ export const submitFeedback = async (req: Request, res: Response) => {
     const updatedIncident = await prisma.incident.update({
       where: { id },
       data: {
-        actualDuration,
+        actualDuration: parseFloat(actualDuration),
         operatorOverrides: overridden,
       },
     });
+
+    // Check count of resolved incidents with feedback
+    const feedbackCount = await prisma.incident.count({
+      where: { actualDuration: { not: null } }
+    });
+
+    // Trigger retraining loop in background if count is a multiple of 5
+    if (feedbackCount > 0 && feedbackCount % 5 === 0) {
+      console.log(`🔄 Triggering automated ML retraining (Feedback count: ${feedbackCount})...`);
+      
+      const feedbackList = await prisma.incident.findMany({
+        where: { actualDuration: { not: null } }
+      });
+
+      triggerModelRetraining(feedbackList)
+        .then((output) => {
+          console.log('✅ ML Retraining successful:\n', output);
+        })
+        .catch((err) => {
+          console.error('❌ ML Retraining failed:', err.message);
+        });
+    }
 
     res.json({
       message: 'Feedback submitted successfully',
