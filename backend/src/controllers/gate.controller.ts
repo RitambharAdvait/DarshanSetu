@@ -23,9 +23,11 @@ export const validateEntry = async (req: Request, res: Response) => {
     });
 
     if (!ticket) {
+      (req as any).io.emit('gate_scan', { gateId, status: 'INVALID', error: 'Ticket not found' });
       return res.status(400).json({ status: 'INVALID', error: 'Ticket not found' });
     }
     if (ticket.status === 'VALIDATED') {
+      (req as any).io.emit('gate_scan', { siteId: ticket.siteId, gateId, status: 'INVALID', error: 'Ticket already used' });
       return res.status(400).json({ status: 'INVALID', error: 'Ticket already used' });
     }
 
@@ -35,6 +37,7 @@ export const validateEntry = async (req: Request, res: Response) => {
     const diffMinutes = Math.abs(now.getTime() - slotTime.getTime()) / 60000;
 
     if (diffMinutes > 30) {
+      (req as any).io.emit('gate_scan', { siteId: ticket.siteId, gateId, status: 'MISMATCH', error: 'Not your time slot' });
       return res.status(400).json({ status: 'MISMATCH', error: 'Not your time slot' });
     }
 
@@ -50,6 +53,7 @@ export const validateEntry = async (req: Request, res: Response) => {
     const limit = 50; 
 
     if (currentOccupancy >= limit && !ticket.user.isPriority) {
+      (req as any).io.emit('gate_scan', { siteId: ticket.siteId, gateId, status: 'HOLD', error: 'Zone capacity limit reached' });
       return res.status(423).json({ 
         status: 'HOLD', 
         error: 'Zone capacity limit reached. Please wait.' 
@@ -64,6 +68,9 @@ export const validateEntry = async (req: Request, res: Response) => {
 
     const newOccupancy = currentOccupancy + 1;
     await redis.hset(`site:${ticket.siteId}:occupancy`, targetZone, newOccupancy);
+
+    // Emit successful gate scan
+    (req as any).io.emit('gate_scan', { siteId: ticket.siteId, gateId, status: 'VALID', user: ticket.user.name || 'Devotee' });
 
     res.json({ 
       status: 'VALID', 

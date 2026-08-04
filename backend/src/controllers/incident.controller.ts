@@ -26,6 +26,9 @@ export const raiseSOS = async (req: Request, res: Response) => {
       }
     });
 
+    // Broadcast new incident to all active dashboards
+    (req as any).io.emit('new_incident', incident);
+
     res.status(201).json({
       message: 'SOS incident raised successfully',
       incident
@@ -102,6 +105,9 @@ export const submitFeedback = async (req: Request, res: Response) => {
     // Trigger retraining loop in background if count is a multiple of 5
     if (feedbackCount > 0 && feedbackCount % 5 === 0) {
       console.log(`🔄 Triggering automated ML retraining (Feedback count: ${feedbackCount})...`);
+
+       // Broadcast retraining running status
+      (req as any).io.emit('ml_retraining_status', { status: 'running', count: feedbackCount });
       
       const feedbackList = await prisma.incident.findMany({
         where: { actualDuration: { not: null } }
@@ -110,9 +116,13 @@ export const submitFeedback = async (req: Request, res: Response) => {
       triggerModelRetraining(feedbackList)
         .then((output) => {
           console.log('✅ ML Retraining successful:\n', output);
+           // Broadcast retraining success status
+          (req as any).io.emit('ml_retraining_status', { status: 'success', output });
         })
         .catch((err) => {
           console.error('❌ ML Retraining failed:', err.message);
+            // Broadcast retraining failed status
+          (req as any).io.emit('ml_retraining_status', { status: 'failed', error: err.message });
         });
     }
 

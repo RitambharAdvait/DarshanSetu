@@ -23,6 +23,14 @@ const io = new SocketIOServer(server, {
 app.use(cors());
 app.use(express.json());
 
+
+// Inject Socket.io instance into Express requests
+app.use((req: any, res, next) => {
+  req.io = io;
+  next();
+
+});
+
 app.use('/api/auth', authRoutes);
 
 app.use('/api/tickets', ticketRoutes);
