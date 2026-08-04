@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { getIncidentRecommendations, triggerModelRetraining } from '../services/recommendation.service';
+import { sendEmergencyAlert } from '../services/notification.service';
 
 
 const prisma = new PrismaClient();
@@ -28,6 +29,11 @@ export const raiseSOS = async (req: Request, res: Response) => {
 
     // Broadcast new incident to all active dashboards
     (req as any).io.emit('new_incident', incident);
+
+    // If incident is CRITICAL, dispatch emergency SMS alerts to guards
+    if (incident.severity === 'CRITICAL') {
+      sendEmergencyAlert(incident);
+    }
 
     res.status(201).json({
       message: 'SOS incident raised successfully',
