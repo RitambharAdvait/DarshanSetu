@@ -1,15 +1,18 @@
 import React from 'react';
 import { 
   Users, Calendar, ShieldAlert,
-  ArrowUpRight, ArrowDownRight, Compass, Activity
+  ArrowUpRight, ArrowDownRight, Compass, Activity, Sparkles
 } from 'lucide-react';
+import { 
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend 
+} from 'recharts';
 
-const StatsAndCharts = ({ stats, t }) => {
+const StatsAndCharts = ({ stats, forecastData, t }) => {
   // Stats items config
   const statsItems = [
     {
       id: 'current-visitors',
-      label: t.currentVisitors,
+      label: t.currentVisitors || 'Live Occupancy',
       value: stats.currentCrowd.toLocaleString(),
       change: '+12.4%',
       isPositive: true,
@@ -20,7 +23,7 @@ const StatsAndCharts = ({ stats, t }) => {
     },
     {
       id: 'today-visitors',
-      label: t.todayVisitors,
+      label: t.todayVisitors || 'Today Total',
       value: stats.todayVisitors.toLocaleString(),
       change: '+8.3%',
       isPositive: true,
@@ -31,7 +34,7 @@ const StatsAndCharts = ({ stats, t }) => {
     },
     {
       id: 'capacity-used',
-      label: t.capacityUsed,
+      label: t.capacityUsed || 'Capacity Utilized',
       value: `${stats.capacityUsed}%`,
       isProgress: true,
       icon: Compass,
@@ -41,7 +44,7 @@ const StatsAndCharts = ({ stats, t }) => {
     },
     {
       id: 'entry-count',
-      label: t.entryCount,
+      label: t.entryCount || 'Gate Inflow Ticks',
       value: `+ ${stats.entryCount.toLocaleString()}`,
       change: '+15.2%',
       isPositive: true,
@@ -51,19 +54,8 @@ const StatsAndCharts = ({ stats, t }) => {
       borderColor: '#a7f3d0'
     },
     {
-      id: 'exit-count',
-      label: t.exitCount,
-      value: `+ ${stats.exitCount.toLocaleString()}`,
-      change: '-5.1%',
-      isPositive: false,
-      icon: ArrowDownRight,
-      color: '#ef4444',
-      bgColor: '#fef2f2',
-      borderColor: '#fca5a5'
-    },
-    {
       id: 'active-zones',
-      label: t.activeZones,
+      label: t.activeZones || 'Active Shrines',
       value: `${stats.activeZones.current} / ${stats.activeZones.total}`,
       icon: Activity,
       color: '#8b5cf6',
@@ -72,7 +64,7 @@ const StatsAndCharts = ({ stats, t }) => {
     },
     {
       id: 'active-alerts',
-      label: t.activeAlerts,
+      label: t.activeAlerts || 'Active Warnings',
       value: stats.activeAlertsCount,
       isAlert: true,
       icon: ShieldAlert,
@@ -83,10 +75,11 @@ const StatsAndCharts = ({ stats, t }) => {
   ];
 
   return (
-    <div style={styles.container}>
+    <div style={styles.gridContainer}>
+      {/* Left panel: Live Stats */}
       <div style={styles.statsCol} className="card">
         <div style={styles.header}>
-          <div style={styles.title}>{t.liveStatistics}</div>
+          <div style={styles.title}>{t.liveStatistics || 'LIVE STATISTICS'}</div>
         </div>
         
         <div style={styles.statsList}>
@@ -142,13 +135,94 @@ const StatsAndCharts = ({ stats, t }) => {
           })}
         </div>
       </div>
+
+      {/* Right panel: Recharts CQR Forecast */}
+      <div style={styles.chartCol} className="card">
+        <div style={styles.headerRow}>
+          <div style={styles.title}>14-DAY CROWD VISITOR FORECAST</div>
+          <div style={styles.conformalBadge}>
+            <Sparkles size={12} color="#2563eb" />
+            <span>90% Confidence Conformal Bounds</span>
+          </div>
+        </div>
+
+        <div style={styles.chartWrapper}>
+          {forecastData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={forecastData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorPoint" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#94a3b8" 
+                  fontSize={10} 
+                  tickFormatter={(tick) => tick.substring(5)} 
+                />
+                <YAxis 
+                  stroke="#94a3b8" 
+                  fontSize={10} 
+                  tickFormatter={(tick) => `${(tick / 1000).toFixed(0)}k`} 
+                />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontFamily: 'var(--font-main)', fontSize: '12px' }} 
+                />
+                <Legend 
+                  verticalAlign="top" 
+                  height={30} 
+                  iconType="circle" 
+                  wrapperStyle={{ fontFamily: 'var(--font-main)', fontSize: '11px' }}
+                />
+                
+                {/* Conformal Bounds Range Shading */}
+                <Area 
+                  type="monotone" 
+                  dataKey="upper" 
+                  stroke="none" 
+                  fill="rgba(37, 99, 235, 0.1)" 
+                  name="Conformal Max Limit" 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="lower" 
+                  stroke="none" 
+                  fill="#ffffff" 
+                  name="Conformal Min Limit" 
+                />
+                
+                {/* Main Prediction Line */}
+                <Area 
+                  type="monotone" 
+                  dataKey="point" 
+                  stroke="#2563eb" 
+                  strokeWidth={2.5} 
+                  fill="url(#colorPoint)" 
+                  name="Predicted Darshans" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={styles.chartEmpty}>
+              <span>Loading time-series forecasts from AI Engine...</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
 const styles = {
-  container: {
+  gridContainer: {
+    display: 'grid',
+    gridTemplateColumns: '1.2fr 1fr',
+    gap: '20px',
     width: '100%',
+    fontFamily: 'var(--font-main)'
   },
   statsCol: {
     backgroundColor: '#ffffff',
@@ -157,20 +231,46 @@ const styles = {
     padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: 'var(--shadow-card)',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+  },
+  chartCol: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '16px',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
   },
   header: {
     marginBottom: '16px',
   },
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
   title: {
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: '700',
     color: 'var(--text-secondary)',
     letterSpacing: '0.8px',
   },
+  conformalBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: '#eff6ff',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '10px',
+    fontWeight: '700',
+    color: '#2563eb'
+  },
   statsList: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gridTemplateColumns: 'repeat(2, 1fr)',
     gap: '16px',
     width: '100%',
   },
@@ -183,7 +283,6 @@ const styles = {
     flexDirection: 'column',
     justifyContent: 'space-between',
     height: '100px',
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   },
   statCardHeader: {
     display: 'flex',
@@ -243,6 +342,17 @@ const styles = {
     height: '100%',
     borderRadius: '3px',
     transition: 'width 0.4s ease',
+  },
+  chartWrapper: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  chartEmpty: {
+    color: '#94a3b8',
+    fontSize: '12px',
+    fontWeight: '600'
   }
 };
 

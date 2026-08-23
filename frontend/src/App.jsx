@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import io from 'socket.io-client';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import SituationOverview from './components/SituationOverview';
@@ -9,7 +10,14 @@ import LiveAlerts from './components/LiveAlerts';
 import BottomMetrics from './components/BottomMetrics';
 import { translations } from './utils/translations';
 
+// Initialize WebSocket client connection to backend
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const socket = io(BACKEND_URL);
+
 const App = () => {
+  // Active Site state (Dwarka, Somnath, Ambaji, Pavagadh)
+  const [selectedSite, setSelectedSite] = useState('dwarka');
+
   // Language State
   const [language, setLanguage] = useState('en');
   const t = translations[language] || translations.en;
@@ -31,57 +39,21 @@ const App = () => {
   // Situation Statistics State
   const [stats, setStats] = useState({
     systemStatus: 'Operational',
-    currentCrowd: 42318,
-    todayVisitors: 285642,
-    capacityUsed: 68,
-    entryCount: 23842,
-    exitCount: 21524,
-    activeZones: { current: 12, total: 25 },
-    activeAlertsCount: 7,
-    policeDeployed: 18,
-    weatherImpact: 'Moderate',
+    currentCrowd: 14200,
+    todayVisitors: 285600,
+    capacityUsed: 42,
+    entryCount: 15400,
+    exitCount: 1200,
+    activeZones: { current: 4, total: 10 },
+    activeAlertsCount: 0,
+    policeDeployed: 12,
+    weatherImpact: 'Normal',
     aiConfidence: 96.8,
-    lastUpdated: '10:24 AM'
+    lastUpdated: 'Just now'
   });
 
   // Live Alerts State
-  const [alerts] = useState([
-    {
-      id: 'a1',
-      title: 'High Crowd Density',
-      location: 'Near Vaikuntha Queue Complex',
-      time: '10:20 AM',
-      type: 'critical'
-    },
-    {
-      id: 'a2',
-      title: 'Slow Movement Detected',
-      location: 'Alipiri Main Road',
-      time: '10:15 AM',
-      type: 'warning'
-    },
-    {
-      id: 'a3',
-      title: 'Capacity Threshold 80%',
-      location: 'Zone 3 - Main Temple Area',
-      time: '10:10 AM',
-      type: 'warning'
-    },
-    {
-      id: 'a4',
-      title: 'Traffic Congestion',
-      location: 'Tirupati Bypass Road',
-      time: '10:05 AM',
-      type: 'info-traffic'
-    },
-    {
-      id: 'a5',
-      title: 'Weather Advisory',
-      location: 'Moderate Rain Expected',
-      time: '10:00 AM',
-      type: 'info-weather'
-    }
-  ]);
+  const [alerts, setAlerts] = useState([]);
 
   // Bottom sparkline metrics state
   const [bottomMetrics, setBottomMetrics] = useState({
@@ -90,131 +62,136 @@ const App = () => {
     peakTime: '12:00 PM - 2:00 PM',
     predictionAccuracy: 96.8,
     accuracyChange: '3.2',
-    highRiskZones: 3,
-    riskZonesChange: '2',
-    emergencyAlerts: 7,
-    alertsChange: '1',
-    avgWaitingTime: 32,
-    waitingTimeChange: '8'
+    highRiskZones: 1,
+    riskZonesChange: '0',
+    emergencyAlerts: 0,
+    alertsChange: '0',
+    avgWaitingTime: 25,
+    waitingTimeChange: '5'
   });
 
-  // Charts data state
-  const [chartsData, setChartsData] = useState({
-    crowdTrend: [
-      { time: '12 AM', visitors: 10000 },
-      { time: '4 AM', visitors: 15000 },
-      { time: '8 AM', visitors: 32000 },
-      { time: '12 PM', visitors: 42318 },
-      { time: '4 PM', visitors: 35000 },
-      { time: '8 PM', visitors: 28000 },
-      { time: '12 AM', visitors: 12000 }
-    ],
-    predictionVsActual: [
-      { time: '12 AM', predicted: 12000, actual: 10000 },
-      { time: '4 AM', predicted: 14000, actual: 15000 },
-      { time: '8 AM', predicted: 30000, actual: 32000 },
-      { time: '12 PM', predicted: 40000, actual: 42318 },
-      { time: '4 PM', predicted: 38000, actual: 35000 },
-      { time: '8 PM', predicted: 26000, actual: 28000 },
-      { time: '12 AM', predicted: 10000, actual: 12000 }
-    ],
-    hourlyVisitors: [
-      { time: '12 AM', visitors: 2000 },
-      { time: '2 AM', visitors: 1200 },
-      { time: '4 AM', visitors: 3500 },
-      { time: '6 AM', visitors: 8000 },
-      { time: '8 AM', visitors: 15000 },
-      { time: '10 AM', visitors: 24000 },
-      { time: '12 PM', visitors: 28000 },
-      { time: '2 PM', visitors: 22000 },
-      { time: '4 PM', visitors: 19000 },
-      { time: '6 PM', visitors: 23000 },
-      { time: '8 PM', visitors: 17000 },
-      { time: '10 PM', visitors: 10000 }
-    ],
-    trafficFlow: [
-      { time: '12 AM', vehicles: 450 },
-      { time: '4 AM', vehicles: 300 },
-      { time: '8 AM', vehicles: 950 },
-      { time: '12 PM', vehicles: 1200 },
-      { time: '4 PM', vehicles: 1100 },
-      { time: '8 PM', vehicles: 850 },
-      { time: '12 AM', vehicles: 500 }
-    ]
-  });
+  // Live 14-day forecast data fetched from API
+  const [forecastData, setForecastData] = useState([]);
 
-  // Clock format logic helper for current time refresh
-  const getCurrentTimeFormatted = () => {
-    const d = new Date();
-    return d.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+  // Fetch forecast data on selected temple change
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/analytics/forecast?siteId=${selectedSite}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.forecast) {
+          setForecastData(data.forecast);
+        }
+      })
+      .catch(err => console.error("Error fetching forecast:", err));
+  }, [selectedSite]);
+
+  // Hook WebSockets events
+  useEffect(() => {
+    // 1. Live Occupancy changes
+    socket.on('occupancy_update', (data) => {
+      if (data.siteId.toLowerCase() === selectedSite.toLowerCase()) {
+        setStats(prev => {
+          const newCrowd = Math.max(0, prev.currentCrowd + 1);
+          return {
+            ...prev,
+            currentCrowd: newCrowd,
+            capacityUsed: Math.min(100, Math.round((newCrowd / 1000) * 100)) // simulated limit 1000
+          };
+        });
+      }
     });
-  };
+
+    // 2. Telemetry and Incident warnings
+    socket.on('zone_telemetry', (data) => {
+      if (data.siteId.toLowerCase() === selectedSite.toLowerCase()) {
+        // Toggle map highlights
+      }
+    });
+
+    // 3. Emergency SOS Alerts
+    socket.on('new_incident', (incident) => {
+      if (incident.siteId.toLowerCase() === selectedSite.toLowerCase()) {
+        setAlerts(prev => [
+          {
+            id: incident.id,
+            title: incident.type.replace(/_/g, ' '),
+            location: incident.zoneId || 'Main Corridor',
+            time: new Date(incident.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: incident.severity.toLowerCase() === 'critical' ? 'critical' : 'warning',
+            description: incident.description,
+            incidentRaw: incident
+          },
+          ...prev
+        ]);
+        setStats(prev => ({
+          ...prev,
+          activeAlertsCount: prev.activeAlertsCount + 1
+        }));
+      }
+    });
+
+    // 4. Gate Validation transactions
+    socket.on('gate_scan', (scan) => {
+      if (scan.siteId && scan.siteId.toLowerCase() === selectedSite.toLowerCase()) {
+        setStats(prev => {
+          const isVal = scan.status === 'VALID';
+          return {
+            ...prev,
+            entryCount: isVal ? prev.entryCount + 1 : prev.entryCount,
+            lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+        });
+      }
+    });
+
+    return () => {
+      socket.off('occupancy_update');
+      socket.off('zone_telemetry');
+      socket.off('new_incident');
+      socket.off('gate_scan');
+    };
+  }, [selectedSite]);
 
   // Click handler for alerts to pan the map
   const handleAlertClick = (alertItem) => {
-    alert(`Alert details: ${alertItem.title} - Location: ${alertItem.location}. Camera feed active.`);
-    // Focus map filter to show CCTV / Alerts
-    setMapFilters(prev => ({
-      ...prev,
-      highDensity: true,
-      cctv: true
-    }));
+    alert(`Alert details: ${alertItem.title} - Location: ${alertItem.location}. Loading mitigation suggestions...`);
+    
+    // Trigger recommendations popup
+    fetch(`http://localhost:5000/api/incidents/${alertItem.id}/recommend`, { method: 'POST' })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.recommendations) {
+          const rec = data.recommendations;
+          alert(`🤖 ML Recommended Action Plan:\n` +
+                `- Suggested Duration: ${rec.predicted_duration} mins\n` +
+                `- Security Marshals: ${rec.recommended_marshals}\n` +
+                `- Barricades Required: ${rec.recommended_barricading}\n` +
+                `- Diversions Plan: ${rec.recommended_diversion}`);
+        }
+      })
+      .catch(err => console.error("Error loading recommendations:", err));
   };
 
-  // Refresh handler to randomize stats slightly for demonstration
+  // Refresh handler to reload configurations
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
-      // Small random variations
-      const crowdDiff = Math.floor(Math.random() * 800) - 400;
-      const confidenceDiff = (Math.random() * 1.5 - 0.75).toFixed(1);
-      const capacityDiff = Math.floor(Math.random() * 6) - 3;
-      
-      setStats(prev => ({
-        ...prev,
-        currentCrowd: prev.currentCrowd + crowdDiff,
-        todayVisitors: prev.todayVisitors + Math.abs(crowdDiff * 2),
-        capacityUsed: Math.max(40, Math.min(95, prev.capacityUsed + capacityDiff)),
-        entryCount: prev.entryCount + Math.floor(Math.random() * 200),
-        exitCount: prev.exitCount + Math.floor(Math.random() * 180),
-        aiConfidence: Math.max(90, Math.min(99.9, parseFloat((prev.aiConfidence + parseFloat(confidenceDiff)).toFixed(1)))),
-        lastUpdated: getCurrentTimeFormatted()
-      }));
-
-      // Also update bottom metrics
-      setBottomMetrics(prev => ({
-        ...prev,
-        todayVisitors: prev.todayVisitors + Math.abs(crowdDiff * 2),
-        predictionAccuracy: Math.max(90, Math.min(99.9, parseFloat((prev.predictionAccuracy + parseFloat(confidenceDiff)).toFixed(1)))),
-        avgWaitingTime: Math.max(15, Math.min(90, prev.avgWaitingTime + Math.floor(Math.random() * 4) - 2))
-      }));
-
-      // Update charts data with new midday stats
-      setChartsData(prev => {
-        const updatedCrowdTrend = [...prev.crowdTrend];
-        updatedCrowdTrend[3] = { ...updatedCrowdTrend[3], visitors: prev.crowdTrend[3].visitors + crowdDiff };
-        
-        const updatedPredictionVsActual = [...prev.predictionVsActual];
-        updatedPredictionVsActual[3] = { ...updatedPredictionVsActual[3], actual: prev.predictionVsActual[3].actual + crowdDiff };
-
-        return {
-          ...prev,
-          crowdTrend: updatedCrowdTrend,
-          predictionVsActual: updatedPredictionVsActual
-        };
-      });
-
       setIsRefreshing(false);
     }, 800);
   };
 
   return (
     <div style={styles.appContainer}>
-      {/* Top Fixed Header */}
-      <Header activeModule={activeModule} setActiveModule={setActiveModule} language={language} setLanguage={setLanguage} t={t} />
+      {/* Top Fixed Header with Site Selector */}
+      <Header 
+        activeModule={activeModule} 
+        setActiveModule={setActiveModule} 
+        language={language} 
+        setLanguage={setLanguage} 
+        selectedSite={selectedSite}
+        setSelectedSite={setSelectedSite}
+        t={t} 
+      />
       
       {/* Main Bottom Section Layout */}
       <div style={styles.contentLayout}>
@@ -223,9 +200,10 @@ const App = () => {
 
         {/* Scrollable Work Area */}
         <main style={styles.workArea}>
-          {activeModule === 'dashboard' ? (
+          
+          {/* 1. MAIN OVERVIEW DASHBOARD TAB */}
+          {activeModule === 'dashboard' && (
             <>
-
               {/* Situation Summary Grid */}
               <SituationOverview 
                 stats={stats} 
@@ -239,32 +217,98 @@ const App = () => {
 
               {/* Mid-level grid containing Map, Stats, Charts & Alerts */}
               <div style={styles.middleGrid}>
-                {/* Column 1: Map (65% width of grid row) */}
                 <div style={styles.mapColumn}>
                   <InteractiveMap filters={mapFilters} setFilters={setMapFilters} />
                 </div>
-
-                {/* Column 2: Alerts (35% width of grid row) */}
                 <div style={styles.alertsColumn}>
                   <LiveAlerts alerts={alerts} onAlertClick={handleAlertClick} />
                 </div>
               </div>
 
               {/* Stats column combined with charts grid */}
-              <StatsAndCharts stats={stats} chartsData={chartsData} t={t} />
+              <StatsAndCharts stats={stats} forecastData={forecastData} t={t} />
 
               {/* Bottom sparkline metrics grid */}
               <BottomMetrics metrics={bottomMetrics} />
-
-              {/* Bottom Footer */}
-              <footer style={styles.footer}>
-                <div style={styles.footerLeft}>{t.brandTitle} © 2026. All rights reserved.</div>
-                <div style={{ ...styles.footerCenter, fontWeight: 'bold' }}>TEAM HELIOS</div>
-                <div style={styles.footerRight}>Version 1.0.0</div>
-              </footer>
             </>
-          ) : (
-            // Mock module details view
+          )}
+
+          {/* 2. LIVE CROWD TAB */}
+          {activeModule === 'live-crowd' && (
+            <>
+              <SituationOverview 
+                stats={stats} 
+                handleRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
+                t={t}
+              />
+              <div style={styles.mapColumn}>
+                <InteractiveMap filters={mapFilters} setFilters={setMapFilters} />
+              </div>
+            </>
+          )}
+
+          {/* 3. FORECASTING TAB */}
+          {activeModule === 'forecast' && (
+            <>
+              <SituationOverview 
+                stats={stats} 
+                handleRefresh={handleRefresh}
+                isRefreshing={isRefreshing}
+                t={t}
+              />
+              <StatsAndCharts stats={stats} forecastData={forecastData} t={t} />
+            </>
+          )}
+
+          {/* 3. INCIDENT ALERTS DESK TAB */}
+          {activeModule === 'alerts' && (
+            <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+              <LiveAlerts alerts={alerts} onAlertClick={handleAlertClick} />
+            </div>
+          )}
+
+          {/* 4. TRAFFIC APPROACH CORRIDORS TAB */}
+          {activeModule === 'traffic' && (
+            <div style={styles.trafficPanel} className="card">
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginBottom: '16px' }}>
+                TEMPLE CORRIDOR CONGESTION STATUS
+              </h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-main)', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b', fontSize: '11px', fontWeight: '700' }}>
+                    <th style={{ padding: '12px' }}>APPROACH ROUTE</th>
+                    <th style={{ padding: '12px' }}>CROWD LOADING</th>
+                    <th style={{ padding: '12px' }}>STATUS</th>
+                    <th style={{ padding: '12px' }}>ESTIMATED WAIT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>North Corridor (Exit Gate 3)</td>
+                    <td style={{ padding: '12px' }}>78%</td>
+                    <td style={{ padding: '12px', color: '#ef4444', fontWeight: '700' }}>🚨 CRITICAL LEVEL</td>
+                    <td style={{ padding: '12px' }}>~ 25 mins</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>East Walkway (Sanctum Approach)</td>
+                    <td style={{ padding: '12px' }}>42%</td>
+                    <td style={{ padding: '12px', color: '#f59e0b', fontWeight: '700' }}>⚠️ MODERATE LOAD</td>
+                    <td style={{ padding: '12px' }}>~ 10 mins</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>West Car Parking Area</td>
+                    <td style={{ padding: '12px' }}>15%</td>
+                    <td style={{ padding: '12px', color: '#10b981', fontWeight: '700' }}>🟢 LIQUID</td>
+                    <td style={{ padding: '12px' }}>0 mins</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 5. MOCK / SETTINGS VIEWS */}
+          {['reports', 'analytics', 'settings'].includes(activeModule) && (
             <div style={styles.mockViewContainer}>
               <h2 style={styles.mockTitle}>
                 {activeModule.toUpperCase().replace('-', ' ')}
@@ -300,7 +344,7 @@ const styles = {
     flexDirection: 'row',
     width: '100%',
     height: 'calc(100vh - 76px)',
-    marginTop: '76px', // Shift below header
+    marginTop: '76px',
   },
   workArea: {
     flex: 1,
@@ -373,6 +417,13 @@ const styles = {
     cursor: 'pointer',
     fontFamily: 'var(--font-main)',
     transition: 'opacity 0.2s ease',
+  },
+  trafficPanel: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
+    borderRadius: '16px',
+    padding: '24px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
   }
 };
 
