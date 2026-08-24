@@ -65,7 +65,7 @@ const SituationOverview = ({ stats, t }) => {
                 </div>
               </div>
               <div style={styles.cardBody}>
-                <div style={{...styles.value, color: '#0f172a'}}>
+                <div style={{...styles.value, color: 'var(--text-primary)'}}>
                   {card.value}
                 </div>
                 {card.title === t.systemStatus ? (
@@ -143,8 +143,8 @@ const styles = {
     width: '100%',
   },
   card: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     padding: '16px',
     display: 'flex',
@@ -168,7 +168,7 @@ const styles = {
     width: '28px',
     height: '28px',
     borderRadius: '8px',
-    display: 'flex',
+    display: 'flex',  
     alignItems: 'center',
     justifyContent: 'center',
   },

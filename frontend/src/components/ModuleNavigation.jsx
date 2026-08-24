@@ -46,13 +46,13 @@ const ModuleNavigation = ({ activeModule, setActiveModule }) => {
         return (
           <div 
             key={card.id} 
-            className="card"
+            className="card hover-lift"
             style={{
               ...styles.card,
               borderLeft: `4px solid ${card.color}`,
-              boxShadow: isActive ? `0 8px 30px rgba(148, 163, 184, 0.15), 0 0 0 2px ${card.color}` : 'var(--shadow-card)',
-              transform: isActive ? 'translateY(-2px)' : 'none',
-              borderColor: isActive ? card.color : '#e2e8f0'
+              boxShadow: isActive ? `0 8px 30px rgba(148, 163, 184, 0.15), 0 0 0 2px ${card.color}` : undefined,
+              transform: isActive ? 'translateY(-2px)' : undefined,
+              borderColor: isActive ? card.color : 'var(--border-color)'
             }}
             onClick={() => setActiveModule(card.id)}
           >
@@ -98,8 +98,8 @@ const styles = {
     width: '100%',
   },
   card: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     padding: '16px',
     display: 'flex',
@@ -126,7 +126,7 @@ const styles = {
   title: {
     fontSize: '14px',
     fontWeight: '700',
-    color: '#0f172a',
+    color: 'var(--text-primary)',
   },
   desc: {
     fontSize: '11px',

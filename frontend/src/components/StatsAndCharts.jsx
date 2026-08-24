@@ -115,7 +115,7 @@ const StatsAndCharts = ({ stats, forecastData, t }) => {
                     <div style={styles.valueContainer}>
                       <span style={{
                         ...styles.statValue,
-                        color: item.isAlert ? '#ef4444' : '#0f172a'
+                        color: item.isAlert ? '#ef4444' : 'var(--text-primary)'
                       }}>{item.value}</span>
                       {item.change && (
                         <span style={{
@@ -168,14 +168,21 @@ const StatsAndCharts = ({ stats, forecastData, t }) => {
                   fontSize={10} 
                   tickFormatter={(tick) => `${(tick / 1000).toFixed(0)}k`} 
                 />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontFamily: 'var(--font-main)', fontSize: '12px' }} 
+                                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'var(--bg-card)', 
+                    border: '1px solid var(--border-color)', 
+                    color: 'var(--text-primary)',
+                    borderRadius: '12px', 
+                    fontFamily: 'var(--font-main)', 
+                    fontSize: '12px' 
+                  }} 
                 />
                 <Legend 
                   verticalAlign="top" 
                   height={30} 
                   iconType="circle" 
-                  wrapperStyle={{ fontFamily: 'var(--font-main)', fontSize: '11px' }}
+                  wrapperStyle={{ fontFamily: 'var(--font-main)', fontSize: '11px', color: 'var(--text-primary)' }}
                 />
                 
                 {/* Conformal Bounds Range Shading */}
@@ -183,14 +190,14 @@ const StatsAndCharts = ({ stats, forecastData, t }) => {
                   type="monotone" 
                   dataKey="upper" 
                   stroke="none" 
-                  fill="rgba(37, 99, 235, 0.1)" 
+                  fill="rgba(37, 99, 235, 0.15)" 
                   name="Conformal Max Limit" 
                 />
                 <Area 
                   type="monotone" 
                   dataKey="lower" 
                   stroke="none" 
-                  fill="#ffffff" 
+                  fill="var(--bg-card)" // Dynamically masks the lower bounds matching the card theme
                   name="Conformal Min Limit" 
                 />
                 
@@ -225,22 +232,24 @@ const styles = {
     fontFamily: 'var(--font-main)'
   },
   statsCol: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+    boxShadow: 'var(--shadow-md)',
+    transition: 'background-color var(--transition-normal), border-color var(--transition-normal)'
   },
   chartCol: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+    boxShadow: 'var(--shadow-md)',
+    transition: 'background-color var(--transition-normal), border-color var(--transition-normal)'
   },
   header: {
     marginBottom: '16px',
@@ -261,12 +270,12 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#eff6ff',
+    backgroundColor: 'var(--color-blue-light)',
     padding: '4px 10px',
     borderRadius: '20px',
     fontSize: '10px',
     fontWeight: '700',
-    color: '#2563eb'
+    color: 'var(--color-blue)'
   },
   statsList: {
     display: 'grid',
@@ -275,14 +284,15 @@ const styles = {
     width: '100%',
   },
   statCard: {
-    backgroundColor: '#f8fafc',
-    border: '1px solid #f1f5f9',
+    backgroundColor: 'var(--bg-item)',
+    border: '1px solid var(--border-color)',
     borderRadius: '12px',
     padding: '16px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
     height: '100px',
+    transition: 'background-color var(--transition-normal), border-color var(--transition-normal)'
   },
   statCardHeader: {
     display: 'flex',
@@ -316,7 +326,7 @@ const styles = {
   statValue: {
     fontSize: '18px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'var(--text-primary)',
     lineHeight: '1.2',
   },
   changeLabel: {
@@ -334,7 +344,7 @@ const styles = {
   progressBarBg: {
     width: '100%',
     height: '6px',
-    backgroundColor: '#e2e8f0',
+    backgroundColor: 'var(--border-color)',
     borderRadius: '3px',
     overflow: 'hidden',
   },
@@ -350,7 +360,7 @@ const styles = {
     justifyContent: 'center'
   },
   chartEmpty: {
-    color: '#94a3b8',
+    color: 'var(--text-muted)',
     fontSize: '12px',
     fontWeight: '600'
   }

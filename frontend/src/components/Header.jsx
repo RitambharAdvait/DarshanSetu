@@ -84,7 +84,7 @@ const Header = ({ activeModule, setActiveModule, language, setLanguage, selected
                   style={{
                     ...styles.dropdownItem,
                     fontWeight: selectedSite === site.id ? '700' : '400',
-                    backgroundColor: selectedSite === site.id ? '#f1f5f9' : 'transparent'
+                    backgroundColor: selectedSite === site.id ? 'var(--bg-item)' : 'transparent'
                   }}
                   onClick={() => {
                     setSelectedSite(site.id);
@@ -131,7 +131,7 @@ const Header = ({ activeModule, setActiveModule, language, setLanguage, selected
                   style={{
                     ...styles.dropdownItem,
                     fontWeight: language === lang.code ? '700' : '400',
-                    backgroundColor: language === lang.code ? '#f1f5f9' : 'transparent'
+                    backgroundColor: language === lang.code ? 'var(--bg-item)' : 'transparent'
                   }}
                   onClick={() => {
                     setLanguage(lang.code);
@@ -156,15 +156,16 @@ const styles = {
     left: 0,
     right: 0,
     height: '76px',
-    backgroundColor: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-sidebar)',
+    borderBottom: '1px solid var(--border-color)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '0 24px',
     zIndex: 100,
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    fontFamily: 'var(--font-main)'
+    boxShadow: 'var(--shadow-sm)',
+    fontFamily: 'var(--font-main)',
+    transition: 'background-color var(--transition-normal), border-color var(--transition-normal)'
   },
   brandContainer: {
     display: 'flex',
@@ -178,14 +179,14 @@ const styles = {
   brandTitle: {
     fontSize: '16px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'var(--text-primary)',
     letterSpacing: '-0.3px',
     lineHeight: '1.2'
   },
   brandSubtitle: {
     fontSize: '11px',
     fontWeight: '600',
-    color: '#64748b'
+    color: 'var(--text-muted)'
   },
   tabContainer: {
     display: 'flex',
@@ -198,14 +199,14 @@ const styles = {
     backgroundColor: 'transparent',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#64748b',
+    color: 'var(--text-muted)',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     fontFamily: 'var(--font-main)'
   },
   activeTab: {
-    backgroundColor: '#eff6ff',
-    color: '#2563eb',
+    backgroundColor: 'var(--color-blue-light)',
+    color: 'var(--color-blue)',
     fontWeight: '700'
   },
   rightSection: {
@@ -221,12 +222,12 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     padding: '8px 14px',
-    backgroundColor: '#f8fafc',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-item)',
+    border: '1px solid var(--border-color)',
     borderRadius: '10px',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#334155',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
     fontFamily: 'var(--font-main)'
@@ -241,10 +242,10 @@ const styles = {
     position: 'absolute',
     top: '46px',
     right: 0,
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-sidebar)',
+    border: '1px solid var(--border-color)',
     borderRadius: '12px',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+    boxShadow: 'var(--shadow-lg)',
     padding: '6px',
     display: 'flex',
     flexDirection: 'column',
@@ -258,7 +259,7 @@ const styles = {
     backgroundColor: 'transparent',
     borderRadius: '8px',
     fontSize: '13px',
-    color: '#334155',
+    color: 'var(--text-primary)',
     textAlign: 'left',
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',
@@ -269,17 +270,17 @@ const styles = {
     alignItems: 'center',
     gap: '6px',
     padding: '6px 12px',
-    backgroundColor: '#fef2f2',
-    border: '1px solid #fee2e2',
+    backgroundColor: 'var(--color-red-light)',
+    border: '1px solid var(--color-red-border)',
     borderRadius: '20px',
     fontSize: '11px',
     fontWeight: '700',
-    color: '#ef4444'
+    color: 'var(--color-red)'
   },
   pulseDot: {
     width: '6px',
     height: '6px',
-    backgroundColor: '#ef4444',
+    backgroundColor: 'var(--color-red)',
     borderRadius: '50%',
     display: 'inline-block'
   }

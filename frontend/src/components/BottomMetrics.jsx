@@ -99,8 +99,8 @@ const BottomMetrics = ({ metrics }) => {
           badgeColor = '#ef4444';
           badgeBg = '#fef2f2';
         } else if (metric.isNeutral) {
-          badgeColor = '#475569';
-          badgeBg = '#f1f5f9';
+          badgeColor = 'var(--text-secondary)';
+          badgeBg = 'var(--bg-item)';
         }
 
         return (
@@ -155,8 +155,8 @@ const styles = {
     width: '100%',
   },
   card: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     padding: '12px 14px',
     display: 'flex',
@@ -175,11 +175,11 @@ const styles = {
     width: '22px',
     height: '22px',
     borderRadius: '6px',
-    backgroundColor: '#f8fafc',
+    backgroundColor: 'var(--bg-item)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    border: '1px solid #f1f5f9',
+    border: '1px solid var(--border-color)',
     flexShrink: 0,
   },
   title: {
@@ -203,7 +203,7 @@ const styles = {
   value: {
     fontSize: '17px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'var(--text-primary)',
     lineHeight: '1.2',
   },
   badgeRow: {

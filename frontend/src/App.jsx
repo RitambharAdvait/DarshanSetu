@@ -9,6 +9,7 @@ import StatsAndCharts from './components/StatsAndCharts';
 import LiveAlerts from './components/LiveAlerts';
 import BottomMetrics from './components/BottomMetrics';
 import { translations } from './utils/translations';
+import { Sun, Moon } from 'lucide-react';
 
 // Initialize WebSocket client connection to backend
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -17,6 +18,14 @@ const socket = io(BACKEND_URL);
 const App = () => {
   // Active Site state (Dwarka, Somnath, Ambaji, Pavagadh)
   const [selectedSite, setSelectedSite] = useState('dwarka');
+
+  // Theme State (light / dark)
+  const [theme, setTheme] = useState('light');
+
+  // Synchronize theme with DOM attribute
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // Language State
   const [language, setLanguage] = useState('en');
@@ -200,6 +209,9 @@ const App = () => {
 
         {/* Scrollable Work Area */}
         <main style={styles.workArea}>
+
+          {/* Centering Wrapper to prevent horizontal stretching on wide screens */}
+          <div style={{ maxWidth: '1400px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}></div>
           
           {/* 1. MAIN OVERVIEW DASHBOARD TAB */}
           {activeModule === 'dashboard' && (
@@ -268,15 +280,15 @@ const App = () => {
             </div>
           )}
 
-          {/* 4. TRAFFIC APPROACH CORRIDORS TAB */}
+                    {/* 4. TRAFFIC APPROACH CORRIDORS TAB */}
           {activeModule === 'traffic' && (
             <div style={styles.trafficPanel} className="card">
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '16px' }}>
                 TEMPLE CORRIDOR CONGESTION STATUS
               </h3>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-main)', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b', fontSize: '11px', fontWeight: '700' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '11px', fontWeight: '700' }}>
                     <th style={{ padding: '12px' }}>APPROACH ROUTE</th>
                     <th style={{ padding: '12px' }}>CROWD LOADING</th>
                     <th style={{ padding: '12px' }}>STATUS</th>
@@ -284,23 +296,23 @@ const App = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>North Corridor (Exit Gate 3)</td>
-                    <td style={{ padding: '12px' }}>78%</td>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: 'var(--text-primary)' }}>North Corridor (Exit Gate 3)</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>78%</td>
                     <td style={{ padding: '12px', color: '#ef4444', fontWeight: '700' }}>🚨 CRITICAL LEVEL</td>
-                    <td style={{ padding: '12px' }}>~ 25 mins</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>~ 25 mins</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>East Walkway (Sanctum Approach)</td>
-                    <td style={{ padding: '12px' }}>42%</td>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: 'var(--text-primary)' }}>East Walkway (Sanctum Approach)</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>42%</td>
                     <td style={{ padding: '12px', color: '#f59e0b', fontWeight: '700' }}>⚠️ MODERATE LOAD</td>
-                    <td style={{ padding: '12px' }}>~ 10 mins</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>~ 10 mins</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>West Car Parking Area</td>
-                    <td style={{ padding: '12px' }}>15%</td>
-                    <td style={{ padding: '12px', color: '#10b981', fontWeight: '700' }}>🟢 LIQUID</td>
-                    <td style={{ padding: '12px' }}>0 mins</td>
+                  <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '12px', fontWeight: '700', color: 'var(--text-primary)' }}>West Car Parking Area</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>15%</td>
+                    <td style={{ padding: '12px', color: '#10b981', fontWeight: '700' }}>🟢 FREE FLOW</td>
+                    <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>0 mins</td>
                   </tr>
                 </tbody>
               </table>
@@ -311,7 +323,7 @@ const App = () => {
           {activeModule === 'reports' && (
             <div style={styles.trafficPanel} className="card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>INCIDENT AUDIT LOGS</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)' }}>INCIDENT AUDIT LOGS</h3>
                 <button 
                   style={styles.backBtn} 
                   onClick={() => {
@@ -364,11 +376,11 @@ const App = () => {
             </div>
           )}
 
-                    {/* 6. ADVANCED ANALYTICS MODULE */}
+          {/* 6. ADVANCED ANALYTICS MODULE */}
           {activeModule === 'analytics' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'var(--font-main)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', margin: 0 }}>ADVANCED ANALYTICS TELEMETRY</h3>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>ADVANCED ANALYTICS TELEMETRY</h3>
                 <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>Active DB: PostgreSQL (darshansetu)</span>
               </div>
               
@@ -376,7 +388,7 @@ const App = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
                 
                 {/* Card 1: Ensemble Error */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>AI Ensemble MedAE Error</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#eff6ff', color: '#2563eb' }}>Point Model</span>
@@ -386,7 +398,7 @@ const App = () => {
                 </div>
 
                 {/* Card 2: CatBoost Weight */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>Optimal CatBoost Weight</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#ecfdf5', color: '#10b981' }}>Ensemble</span>
@@ -396,7 +408,7 @@ const App = () => {
                 </div>
 
                 {/* Card 3: PyTorch Weight */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>Optimal PyTorch Weight</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#f5f3ff', color: '#8b5cf6' }}>Tabular ResNet</span>
@@ -406,7 +418,7 @@ const App = () => {
                 </div>
 
                 {/* Card 4: Peak Window */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>Peak Traffic Window</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#fffbeb', color: '#f59e0b' }}>Daily Flow</span>
@@ -416,7 +428,7 @@ const App = () => {
                 </div>
 
                 {/* Card 5: Verification Speed */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>Avg Verification Speed</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#f0fdfa', color: '#0d9488' }}>Telemetry</span>
@@ -426,7 +438,7 @@ const App = () => {
                 </div>
 
                 {/* Card 6: Retraining Cycles */}
-                <div style={localStyles.analyticsCard}>
+                <div className="card hover-lift" style={localStyles.analyticsCard}>
                   <div style={localStyles.cardHeader}>
                     <span style={localStyles.cardLabel}>Retraining Cycles</span>
                     <span style={{ ...localStyles.badge, backgroundColor: '#fdf2f8', color: '#db2777' }}>Closed Loop</span>
@@ -442,10 +454,10 @@ const App = () => {
           {/* 7. SYSTEM CONFIGURATION SETTINGS MODULE */}
           {activeModule === 'settings' && (
             <div style={styles.trafficPanel} className="card">
-              <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginBottom: '20px' }}>SYSTEM GATEWAY SETTINGS</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '20px' }}>SYSTEM GATEWAY SETTINGS</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '500px', fontFamily: 'var(--font-main)' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>GATE CAPACITY HOLD THRESHOLD (MAX DEVOTEES)</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>GATE CAPACITY HOLD THRESHOLD (MAX DEVOTEES)</label>
                   <input 
                     type="number" 
                     defaultValue={50} 
@@ -454,7 +466,7 @@ const App = () => {
                   <small style={{ fontSize: '11px', color: '#64748b' }}>If the target zone occupancy exceeds this limit, gates will lock in HOLD status.</small>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>EMERGENCY SMS DISPATCH NUMBER</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>EMERGENCY SMS DISPATCH NUMBER</label>
                   <input 
                     type="text" 
                     defaultValue="+91 99999 88888" 
@@ -462,7 +474,7 @@ const App = () => {
                   />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>CONFORMAL FORECAST BOUNDS COVERAGE RATE</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>CONFORMAL FORECAST BOUNDS COVERAGE RATE</label>
                   <select style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
                     <option value="90">90% (Standard bounds)</option>
                     <option value="95">95% (Conservative safety bounds)</option>
@@ -480,6 +492,34 @@ const App = () => {
           )}
         </main>
       </div>
+      
+      {/* Floating Global Dark Mode Toggle Button */}
+      <button 
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          width: '50px',
+          height: '50px',
+          borderRadius: '50%',
+          backgroundColor: 'var(--color-blue)',
+          color: '#ffffff',
+          border: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
+          cursor: 'pointer',
+          zIndex: 9999,
+          transition: 'transform 0.2s ease, background-color 0.2s ease'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+      >
+        {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+      </button>
+
     </div>
   );
 };
@@ -582,14 +622,15 @@ const styles = {
 
 const localStyles = {
   analyticsCard: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
+    backgroundColor: 'var(--bg-card)',
+    border: '1px solid var(--border-color)',
     borderRadius: '14px',
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
     boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+    transition: 'background-color var(--transition-normal), border-color var(--transition-normal)',
   },
   cardHeader: {
     display: 'flex',
@@ -612,12 +653,12 @@ const localStyles = {
   cardValue: {
     fontSize: '22px',
     fontWeight: '800',
-    color: '#0f172a',
+    color: 'var(--text-primary)',
     marginTop: '4px',
   },
   cardDesc: {
     fontSize: '12px',
-    color: '#64748b',
+    color: 'var(--text-muted)',
     lineHeight: '1.4',
     marginTop: '4px',
   }
