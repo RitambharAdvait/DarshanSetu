@@ -29,4 +29,4 @@ RUN cd backend && npx prisma generate && npm run build
 EXPOSE 5000
 
 # Push database migrations and start server
-CMD ["sh", "-c", "cd backend && npx prisma db push && npm start"]
+CMD ["sh", "-c", "cd backend && npx prisma db push && node dist/index.js"]
