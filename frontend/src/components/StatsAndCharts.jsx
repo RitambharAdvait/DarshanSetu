@@ -324,7 +324,7 @@ const styles = {
     width: '100%',
   },
   statValue: {
-    fontSize: '18px',
+    fontSize: '22px',
     fontWeight: '800',
     color: 'var(--text-primary)',
     lineHeight: '1.2',

@@ -211,7 +211,7 @@ const App = () => {
         <main style={styles.workArea}>
 
           {/* Centering Wrapper to prevent horizontal stretching on wide screens */}
-          <div style={{ maxWidth: '1400px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}></div>
+          <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}></div>
           
           {/* 1. MAIN OVERVIEW DASHBOARD TAB */}
           {activeModule === 'dashboard' && (

@@ -201,7 +201,7 @@ const styles = {
     flexDirection: 'column',
   },
   value: {
-    fontSize: '17px',
+    fontSize: '20px',
     fontWeight: '800',
     color: 'var(--text-primary)',
     lineHeight: '1.2',
