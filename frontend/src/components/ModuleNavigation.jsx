@@ -1,13 +1,13 @@
 import React from 'react';
 import { Users, TrendingUp, Car, ArrowRight } from 'lucide-react';
 
-const ModuleNavigation = ({ activeModule, setActiveModule }) => {
+const ModuleNavigation = ({ activeModule, setActiveModule, t }) => {
   const cards = [
     {
       id: 'live-crowd',
-      title: 'Live Crowd',
-      desc: 'Monitor real-time crowd density.',
-      statusText: 'Live Monitoring',
+      title: t?.liveCrowd || 'Live Crowd',
+      desc: t?.liveCrowdDesc || 'Monitor real-time crowd density.',
+      statusText: t?.liveMonitoring || 'Live Monitoring',
       icon: Users,
       color: '#2563eb',
       bgColor: '#eff6ff',
@@ -16,9 +16,9 @@ const ModuleNavigation = ({ activeModule, setActiveModule }) => {
     },
     {
       id: 'forecast',
-      title: 'Crowd Forecast',
-      desc: 'Predict crowd levels using historical patterns.',
-      statusText: 'Trend Analysis',
+      title: t?.forecast || 'Crowd Forecast',
+      desc: t?.forecastDesc || 'Predict crowd levels using historical patterns.',
+      statusText: t?.trendAnalysis || 'Trend Analysis',
       icon: TrendingUp,
       color: '#8b5cf6',
       bgColor: '#f5f3ff',
@@ -27,9 +27,9 @@ const ModuleNavigation = ({ activeModule, setActiveModule }) => {
     },
     {
       id: 'traffic',
-      title: 'Traffic',
-      desc: 'Monitor traffic movement around the event.',
-      statusText: 'Live Tracking',
+      title: t?.traffic || 'Traffic',
+      desc: t?.trafficDesc || 'Monitor traffic movement around the event.',
+      statusText: t?.liveTracking || 'Live Tracking',
       icon: Car,
       color: '#0d9488',
       bgColor: '#f0fdfa',

@@ -35,7 +35,13 @@ export const translations = {
     supportCenter: "Support Center",
     logout: "Logout",
     aboutAlert: "Darshan Setu v1.0.0",
-    supportAlert: "Support Center"
+    supportAlert: "Support Center",
+    liveCrowdDesc: "Monitor real-time crowd density.",
+    forecastDesc: "Predict crowd levels using historical patterns.",
+    trafficDesc: "Monitor traffic movement around the event.",
+    liveMonitoring: "Live Monitoring",
+    trendAnalysis: "Trend Analysis",
+    liveTracking: "Live Tracking",
   },
   hi: {
     brandTitle: "दर्शन सेतु",
@@ -73,7 +79,13 @@ export const translations = {
     supportCenter: "सहायता केंद्र",
     logout: "लॉगआउट",
     aboutAlert: "दर्शन सेतु v1.0.0",
-    supportAlert: "सहायता केंद्र"
+    supportAlert: "सहायता केंद्र",
+    liveCrowdDesc: "वास्तविक समय की भीड़ के घनत्व की निगरानी करें।",
+    forecastDesc: "ऐतिहासिक पैटर्न का उपयोग करके भीड़ के स्तर का पूर्वानुमान लगाएं।",
+    trafficDesc: "प्रमुख क्षेत्रों में यातायात की आवाजाही पर नज़र रखें।",
+    liveMonitoring: "लाइव निगरानी",
+    trendAnalysis: "प्रवृत्ति विश्लेषण",
+    liveTracking: "लाइव ट्रैकिंग",
   },
     gu: {
     brandTitle: "દર્શન સેતુ",
@@ -111,7 +123,13 @@ export const translations = {
     supportCenter: "સપોર્ટ સેન્ટર",
     logout: "લોગઆઉટ",
     aboutAlert: "દર્શન સેતુ v1.0.0",
-    supportAlert: "સપોર્ટ સેન્ટર"
+    supportAlert: "સપોર્ટ સેન્ટર",
+    liveCrowdDesc: "રીઅલ-ટાઇમ ભીડ ઘનતાનું નિરીક્ષણ કરો.",
+    forecastDesc: "ઐતિહાસિક પેટર્નનો ઉપયોગ કરીને ભીડનું અનુમાન કરો.",
+    trafficDesc: "મુખ્ય વિસ્તારોમાં ટ્રાફિક હિલચાલનું નિરીક્ષણ કરો.",
+    liveMonitoring: "લાઇવ મોનિટરિંગ",
+    trendAnalysis: "ટ્રેન્ડ વિશ્લેષણ",
+    liveTracking: "લાઇવ ટ્રેકિંગ",
   },
   ta: {
     brandTitle: "தரிசன சேது",
