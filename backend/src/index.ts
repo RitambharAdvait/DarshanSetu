@@ -53,6 +53,21 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => console.log(`🔌 Client disconnected: ${socket.id}`));
 });
 
+// 2-Second Live Forecast Telemetry Streamer (2000ms Interval)
+setInterval(() => {
+  const sites = ['dwarka', 'somnath', 'ambaji', 'pavagadh'];
+  const randomSite = sites[Math.floor(Math.random() * sites.length)];
+  
+  // Micro velocity drift (+/- 1.5% fluctuation)
+  const drift = (Math.random() - 0.48) * 0.03;
+  
+  io.emit('forecast_stream', {
+    siteId: randomSite,
+    timestamp: new Date().toISOString(),
+    drift: drift
+  });
+}, 2000);
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Backend running on http://localhost:${PORT}`);
