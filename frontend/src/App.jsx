@@ -8,6 +8,7 @@ import InteractiveMap from './components/InteractiveMap';
 import StatsAndCharts from './components/StatsAndCharts';
 import LiveAlerts from './components/LiveAlerts';
 import BottomMetrics from './components/BottomMetrics';
+import TicketBookingModal from './components/TicketBookingModal';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -18,6 +19,9 @@ const socket = io(BACKEND_URL);
 const App = () => {
   // Active Site state (Dwarka, Somnath, Ambaji, Pavagadh)
   const [selectedSite, setSelectedSite] = useState('dwarka');
+
+  // Ticket Booking Modal State
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
 
   // Theme State (light / dark)
   const [theme, setTheme] = useState('light');
@@ -189,7 +193,13 @@ const App = () => {
       .then(res => res.json())
       .then(data => {
         if (data && data.forecast) {
-          setForecastData(data.forecast);
+          const mapped = data.forecast.map(item => ({
+            ...item,
+            point: item.point || item.predicted_count || 15000,
+            upper: item.upper || item.upper_bound_90 || Math.round((item.point || 15000) * 1.18),
+            lower: item.lower || item.lower_bound_90 || Math.round((item.point || 15000) * 0.82)
+          }));
+          setForecastData(mapped);
         }
       })
       .catch(err => console.error("Error fetching forecast:", err));
@@ -254,8 +264,9 @@ const App = () => {
       }
     });
 
-    // 5. Live 2-Second Forecast Streaming Update
+    // 5. Live 2-Second Forecast & Telemetry Streaming Update
     socket.on('forecast_stream', (streamData) => {
+      // 1. Update 14-Day Graph Data
       setForecastData(prevData => {
         let baseData = prevData;
         
@@ -268,9 +279,10 @@ const App = () => {
             const baseCount = Math.round(15000 + Math.sin(i * 0.8) * 4000 + Math.random() * 1500);
             return {
               date: d.toISOString().split('T')[0],
+              point: baseCount,
               predicted_count: baseCount,
-              upper_bound_90: Math.round(baseCount * 1.18),
-              lower_bound_90: Math.round(baseCount * 0.82)
+              upper: Math.round(baseCount * 1.18),
+              lower: Math.round(baseCount * 0.82)
             };
           });
         }
@@ -278,14 +290,37 @@ const App = () => {
         const drift = streamData.drift || (Math.random() - 0.5) * 0.04;
         return baseData.map(item => {
           const randomFactor = (Math.random() - 0.48) * 0.03;
-          const newPrediction = Math.max(1000, Math.round(item.predicted_count * (1 + drift + randomFactor)));
+          const currentPoint = item.point || item.predicted_count || 15000;
+          const newPrediction = Math.max(1000, Math.round(currentPoint * (1 + drift + randomFactor)));
           return {
             ...item,
+            point: newPrediction,
             predicted_count: newPrediction,
-            upper_bound_90: Math.round(newPrediction * 1.18),
-            lower_bound_90: Math.round(newPrediction * 0.82)
+            upper: Math.round(newPrediction * 1.18),
+            lower: Math.round(newPrediction * 0.82)
           };
         });
+      });
+
+      // 2. Update Situation Overview & Live Statistics Tiles dynamically every 2 seconds
+      setStats(prev => {
+        const deltaIn = Math.floor(Math.random() * 9) + 1;  // 1 to 9 entries per 2s
+        const deltaOut = Math.floor(Math.random() * 6);     // 0 to 5 exits per 2s
+        const newCrowd = Math.max(1000, prev.currentCrowd + deltaIn - deltaOut);
+        const newToday = prev.todayVisitors + deltaIn;
+        const newCapacity = Math.min(100, Math.round((newCrowd / 35000) * 100));
+        const newConfidence = Math.min(99.5, Math.max(94.0, +(prev.aiConfidence + (Math.random() - 0.5) * 0.2).toFixed(1)));
+
+        return {
+          ...prev,
+          currentCrowd: newCrowd,
+          todayVisitors: newToday,
+          capacityUsed: newCapacity,
+          entryCount: prev.entryCount + deltaIn,
+          exitCount: prev.exitCount + deltaOut,
+          aiConfidence: newConfidence,
+          lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
       });
     });
 
@@ -337,6 +372,7 @@ const App = () => {
         selectedSite={selectedSite}
         setSelectedSite={setSelectedSite}
         t={t} 
+        onOpenTicketModal={() => setIsTicketModalOpen(true)}
       />
       
       {/* Main Bottom Section Layout */}
@@ -367,7 +403,7 @@ const App = () => {
               {/* Mid-level grid containing Map, Stats, Charts & Alerts */}
               <div style={styles.middleGrid}>
                 <div style={styles.mapColumn}>
-                  <InteractiveMap filters={mapFilters} setFilters={setMapFilters} />
+                  <InteractiveMap filters={mapFilters} setFilters={setMapFilters} selectedSite={selectedSite} stats={stats} />
                 </div>
                 <div style={styles.alertsColumn}>
                   <LiveAlerts alerts={alerts} onAlertClick={handleAlertClick} />
@@ -392,7 +428,7 @@ const App = () => {
                 t={t}
               />
               <div style={styles.mapColumn}>
-                <InteractiveMap filters={mapFilters} setFilters={setMapFilters} />
+                <InteractiveMap filters={mapFilters} setFilters={setMapFilters} selectedSite={selectedSite} />
               </div>
             </>
           )}
@@ -651,6 +687,14 @@ const App = () => {
       >
         {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
       </button>
+
+      {/* Devotee Ticket Booking & QR Pass Generator Modal */}
+      <TicketBookingModal 
+        isOpen={isTicketModalOpen} 
+        onClose={() => setIsTicketModalOpen(false)} 
+        selectedSite={selectedSite}
+        setSelectedSite={setSelectedSite}
+      />
 
     </div>
   );

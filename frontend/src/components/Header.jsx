@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bell, ChevronDown, Globe, MapPin } from 'lucide-react';
 import Logo from './Logo';
 
-const Header = ({ activeModule, setActiveModule, language, setLanguage, selectedSite, setSelectedSite, t }) => {
+const Header = ({ activeModule, setActiveModule, language, setLanguage, selectedSite, setSelectedSite, t, onOpenTicketModal }) => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isSiteOpen, setIsSiteOpen] = useState(false);
 
@@ -103,6 +103,28 @@ const Header = ({ activeModule, setActiveModule, language, setLanguage, selected
           <span style={styles.pulseDot}></span>
           <span style={styles.statusText}>LIVE</span>
         </div>
+
+        {/* Book Ticket Pass Button */}
+        <button 
+          onClick={onOpenTicketModal}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '6px 12px',
+            borderRadius: '20px',
+            backgroundColor: 'var(--color-blue)',
+            color: '#ffffff',
+            border: 'none',
+            fontSize: '11px',
+            fontWeight: '700',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          🎫 Book Ticket
+        </button>
 
         {/* Language Selector Dropdown */}
         <div style={styles.dropdownContainer}>
