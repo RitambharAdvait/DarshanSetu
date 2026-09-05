@@ -13,7 +13,7 @@ import {
   LogOut 
 } from 'lucide-react';
 
-const Sidebar = ({ activeModule, setActiveModule, t }) => {
+const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal }) => {
   const modules = [
     { id: 'live-crowd', name: t.liveCrowd, icon: Users },
     { id: 'forecast', name: t.forecast, icon: TrendingUp },
@@ -41,6 +41,21 @@ const Sidebar = ({ activeModule, setActiveModule, t }) => {
       >
         <LayoutDashboard size={18} style={activeModule === 'dashboard' ? styles.activeIcon : styles.icon} />
         <span style={styles.navText}>{t.dashboard}</span>
+      </button>
+
+      {/* Book Ticket Pass Button */}
+      <button 
+        style={{
+          ...styles.navItem,
+          backgroundColor: 'var(--color-blue-light)',
+          color: 'var(--color-blue)',
+          fontWeight: '700',
+          marginTop: '6px'
+        }}
+        onClick={onOpenTicketModal}
+      >
+        <span style={{ marginRight: '10px', fontSize: '16px' }}>🎫</span>
+        <span style={styles.navText}>Book Darshan Ticket</span>
       </button>
 
       {/* Modules Section */}

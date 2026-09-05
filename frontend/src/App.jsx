@@ -9,6 +9,7 @@ import StatsAndCharts from './components/StatsAndCharts';
 import LiveAlerts from './components/LiveAlerts';
 import BottomMetrics from './components/BottomMetrics';
 import TicketBookingModal from './components/TicketBookingModal';
+import SosEmergencyModal from './components/SosEmergencyModal';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -20,8 +21,9 @@ const App = () => {
   // Active Site state (Dwarka, Somnath, Ambaji, Pavagadh)
   const [selectedSite, setSelectedSite] = useState('dwarka');
 
-  // Ticket Booking Modal State
+  // Modal States
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
 
   // Theme State (light / dark)
   const [theme, setTheme] = useState('light');
@@ -372,13 +374,13 @@ const App = () => {
         selectedSite={selectedSite}
         setSelectedSite={setSelectedSite}
         t={t} 
-        onOpenTicketModal={() => setIsTicketModalOpen(true)}
+        onOpenSosModal={() => setIsSosModalOpen(true)}
       />
       
       {/* Main Bottom Section Layout */}
       <div style={styles.contentLayout}>
         {/* Left Sidebar */}
-        <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} t={t} />
+        <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} t={t} onOpenTicketModal={() => setIsTicketModalOpen(true)} />
 
         {/* Scrollable Work Area */}
         <main style={styles.workArea}>
@@ -694,6 +696,13 @@ const App = () => {
         onClose={() => setIsTicketModalOpen(false)} 
         selectedSite={selectedSite}
         setSelectedSite={setSelectedSite}
+      />
+
+      {/* SOS Emergency Dispatch Modal */}
+      <SosEmergencyModal 
+        isOpen={isSosModalOpen} 
+        onClose={() => setIsSosModalOpen(false)} 
+        selectedSite={selectedSite}
       />
 
     </div>

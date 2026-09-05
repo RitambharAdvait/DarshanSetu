@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Bell, ChevronDown, Globe, MapPin } from 'lucide-react';
 import Logo from './Logo';
 
-const Header = ({ activeModule, setActiveModule, language, setLanguage, selectedSite, setSelectedSite, t, onOpenTicketModal }) => {
+const Header = ({ activeModule, setActiveModule, language, setLanguage, selectedSite, setSelectedSite, t, onOpenSosModal }) => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isSiteOpen, setIsSiteOpen] = useState(false);
 
@@ -104,26 +104,29 @@ const Header = ({ activeModule, setActiveModule, language, setLanguage, selected
           <span style={styles.statusText}>LIVE</span>
         </div>
 
-        {/* Book Ticket Pass Button */}
+        {/* Raise SOS Emergency Button */}
         <button 
-          onClick={onOpenTicketModal}
+          onClick={onOpenSosModal}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '6px 12px',
+            padding: '6px 14px',
             borderRadius: '20px',
-            backgroundColor: 'var(--color-blue)',
+            backgroundColor: '#ef4444',
             color: '#ffffff',
             border: 'none',
             fontSize: '11px',
-            fontWeight: '700',
+            fontWeight: '800',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
-            transition: 'all 0.2s ease'
+            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.4)',
+            transition: 'transform 0.2s ease, background-color 0.2s ease',
+            letterSpacing: '0.3px'
           }}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          🎫 Book Ticket
+          🚨 Raise SOS Emergency
         </button>
 
         {/* Language Selector Dropdown */}
