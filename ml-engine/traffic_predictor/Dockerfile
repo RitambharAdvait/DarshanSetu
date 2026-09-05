@@ -6,12 +6,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ml-engine/traffic_predictor/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ml-engine/traffic_predictor/ .
+COPY . .
 
 ENV PORT=8501
 EXPOSE 8501
