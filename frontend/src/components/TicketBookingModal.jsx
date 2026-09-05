@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
-import { X, QrCode, Calendar, Clock, User, ShieldCheck, Download, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, QrCode, Clock, User, ShieldCheck, Download, CheckCircle2, Navigation, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+const TEMPLE_COORDS = {
+  dwarka: { lat: 22.2378, lng: 68.9678, name: 'Dwarkadhish Temple' },
+  somnath: { lat: 20.8880, lng: 70.4012, name: 'Somnath Temple' },
+  ambaji: { lat: 24.3297, lng: 72.8489, name: 'Ambaji Temple' },
+  pavagadh: { lat: 22.4842, lng: 73.5269, name: 'Mahakali Temple' }
+};
 
 const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) => {
   const [formData, setFormData] = useState({
@@ -15,70 +22,158 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedTicket, setBookedTicket] = useState(null);
 
+  // Geofence & Dynamic Queue State
+  const [devoteeLocation, setDevoteeLocation] = useState({ lat: 22.2395, lng: 68.9685 }); // Default ~200m from Dwarka
+  const [geofenceData, setGeofenceData] = useState({
+    isWithinGeofence: true,
+    distanceMeters: 220,
+    statusText: 'ACTIVE_GEOFENCED'
+  });
+  const [queueStatus, setQueueStatus] = useState({
+    totalDevoteesInQueue: 142,
+    throughputPerMin: 45,
+    estimatedWaitMins: 3
+  });
+  const [simulatedInsidePerimeter, setSimulatedInsidePerimeter] = useState(true);
+
+  // Load cached ticket from LocalStorage on open
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const cached = localStorage.getItem('darshansetu_offline_passes');
+        if (cached) {
+          const passes = JSON.parse(cached);
+          if (passes && passes.length > 0) {
+            setBookedTicket(passes[0]);
+          }
+        }
+      } catch (e) {
+        console.warn('LocalStorage error:', e);
+      }
+    }
+  }, [isOpen]);
+
+  // Live Geolocation Watcher
+  useEffect(() => {
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          if (!simulatedInsidePerimeter) {
+            setDevoteeLocation({
+              lat: pos.coords.latitude,
+              lng: pos.coords.longitude
+            });
+          }
+        },
+        () => {},
+        { enableHighAccuracy: true }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [simulatedInsidePerimeter]);
+
+  // Periodically verify Geofence & Dynamic Queue Status
+  useEffect(() => {
+    if (bookedTicket) {
+      const currentTemple = TEMPLE_COORDS[selectedSite.toLowerCase()] || TEMPLE_COORDS.dwarka;
+      
+      const targetLat = simulatedInsidePerimeter ? currentTemple.lat + 0.0018 : currentTemple.lat + 0.015;
+      const targetLng = simulatedInsidePerimeter ? currentTemple.lng + 0.0012 : currentTemple.lng + 0.012;
+
+      fetch(`${BACKEND_URL}/api/tickets/verify-geofence`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: selectedSite,
+          lat: targetLat,
+          lng: targetLng,
+          qrToken: bookedTicket.qrToken
+        })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setGeofenceData({
+            isWithinGeofence: data.isWithinGeofence ?? simulatedInsidePerimeter,
+            distanceMeters: data.distanceMeters || (simulatedInsidePerimeter ? 240 : 1850),
+            statusText: data.passStatus || (simulatedInsidePerimeter ? 'ACTIVE_GEOFENCED' : 'INACTIVE_OUT_OF_RANGE')
+          });
+        })
+        .catch(() => {
+          setGeofenceData({
+            isWithinGeofence: simulatedInsidePerimeter,
+            distanceMeters: simulatedInsidePerimeter ? 240 : 1850,
+            statusText: simulatedInsidePerimeter ? 'ACTIVE_GEOFENCED' : 'INACTIVE_OUT_OF_RANGE'
+          });
+        });
+
+      // Fetch dynamic wait queue
+      fetch(`${BACKEND_URL}/api/tickets/queue-status/${selectedSite}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.estimatedWaitMins) {
+            setQueueStatus(data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [bookedTicket, selectedSite, simulatedInsidePerimeter]);
+
   if (!isOpen) return null;
 
   const handleBookTicket = (e) => {
     e.preventDefault();
-    if (!formData.phone) return alert("Please enter your phone number!");
+    if (!formData.phone) return alert('Please enter your phone number!');
 
     setIsSubmitting(true);
 
     const slotDateTime = `${formData.slotDate}T${formData.slotTime.startsWith('09') ? '09:00:00' : '14:00:00'}Z`;
 
-    // 1. Authenticate / Register devotee phone
-    fetch(`${BACKEND_URL}/api/auth/register`, {
+    fetch(`${BACKEND_URL}/api/tickets/book`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: formData.phone, name: formData.name || 'Devotee' })
+      body: JSON.stringify({
+        siteId: selectedSite,
+        slotTime: slotDateTime,
+        isPriority: formData.isPriority
+      })
     })
-      .then(res => res.json())
-      .then(authData => {
-        const token = authData.token || 'mock-token';
-
-        // 2. Book Darshan Slot Ticket
-        return fetch(`${BACKEND_URL}/api/tickets/book`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            siteId: selectedSite,
-            slotTime: slotDateTime,
-            isPriority: formData.isPriority
-          })
-        });
-      })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setIsSubmitting(false);
-        if (data && data.ticket) {
-          setBookedTicket({
-            id: data.ticket.id,
-            qrToken: data.qrToken || data.ticket.qrToken,
-            devoteeName: formData.name || 'Pilgrim Devotee',
-            phone: formData.phone,
-            site: selectedSite.toUpperCase(),
-            slotTime: `${formData.slotDate} (${formData.slotTime})`,
-            isPriority: formData.isPriority
-          });
-        } else {
-          throw new Error("Fallback ticket generation");
-        }
-      })
-      .catch(err => {
-        setIsSubmitting(false);
-        // Instant HMAC QR Fallback Generator
-        const mockQrToken = `DS-HMAC-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-        setBookedTicket({
-          id: 'TKT-' + Math.floor(10000 + Math.random() * 90000),
-          qrToken: mockQrToken,
+        const passObj = {
+          id: data.ticket?.id || 'TKT-' + Math.floor(10000 + Math.random() * 90000),
+          qrToken: data.qrToken || data.ticket?.qrToken || `DS-HMAC-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
           devoteeName: formData.name || 'Pilgrim Devotee',
           phone: formData.phone,
           site: selectedSite.toUpperCase(),
           slotTime: `${formData.slotDate} (${formData.slotTime})`,
-          isPriority: formData.isPriority
-        });
+          isPriority: formData.isPriority,
+          createdAt: new Date().toISOString()
+        };
+
+        setBookedTicket(passObj);
+
+        // Cache to LocalStorage for offline PWA access
+        try {
+          localStorage.setItem('darshansetu_offline_passes', JSON.stringify([passObj]));
+        } catch (e) {}
+      })
+      .catch(() => {
+        setIsSubmitting(false);
+        const mockPassObj = {
+          id: 'TKT-' + Math.floor(10000 + Math.random() * 90000),
+          qrToken: `DS-HMAC-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+          devoteeName: formData.name || 'Pilgrim Devotee',
+          phone: formData.phone,
+          site: selectedSite.toUpperCase(),
+          slotTime: `${formData.slotDate} (${formData.slotTime})`,
+          isPriority: formData.isPriority,
+          createdAt: new Date().toISOString()
+        };
+        setBookedTicket(mockPassObj);
+        try {
+          localStorage.setItem('darshansetu_offline_passes', JSON.stringify([mockPassObj]));
+        } catch (e) {}
       });
   };
 
@@ -90,9 +185,12 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
         <div style={styles.modalHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <QrCode size={20} color="var(--color-blue)" />
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-              DARSHAN SLOT TICKET BOOKING
-            </h3>
+            <div>
+              <span style={styles.govSubHeader}>REAL-TIME SMART QUEUE PLATFORM</span>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                DIGITAL DARSHAN PASS & GEOFENCE ACTIVATION
+              </h3>
+            </div>
           </div>
           <button style={styles.closeBtn} onClick={onClose}><X size={18} /></button>
         </div>
@@ -178,20 +276,80 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
               disabled={isSubmitting}
               style={{ ...styles.submitBtn, opacity: isSubmitting ? 0.7 : 1 }}
             >
-              {isSubmitting ? '⚡ Generating HMAC Encrypted Pass...' : '🎫 Raise & Book Official Darshan Pass'}
+              {isSubmitting ? '⚡ Generating Encrypted QR Pass...' : '🎫 Issue Smart Digital Darshan Pass'}
             </button>
           </form>
         ) : (
           /* Booked Ticket Card View */
           <div style={styles.ticketResultContainer}>
             
-            <div style={styles.ticketPassCard}>
+            {/* Geofence Status Banner */}
+            <div
+              style={{
+                ...styles.geofenceBanner,
+                backgroundColor: geofenceData.isWithinGeofence ? '#ecfdf5' : '#fff7ed',
+                borderColor: geofenceData.isWithinGeofence ? '#10b981' : '#f97316'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Navigation 
+                  size={18} 
+                  color={geofenceData.isWithinGeofence ? '#10b981' : '#f97316'} 
+                  className={geofenceData.isWithinGeofence ? 'spin-slow' : ''} 
+                />
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: geofenceData.isWithinGeofence ? '#065f46' : '#9a3412' }}>
+                    {geofenceData.isWithinGeofence ? '🟢 GEOFENCE ACTIVATED (<500m Perimeter)' : '🟠 PASS INACTIVE (Awaiting Temple Arrival)'}
+                  </div>
+                  <div style={{ fontSize: '10px', color: geofenceData.isWithinGeofence ? '#047857' : '#c2410c' }}>
+                    Devotee is {geofenceData.distanceMeters}m from {selectedSite.toUpperCase()} Gate • Radius: 500m
+                  </div>
+                </div>
+              </div>
+
+              {/* Demo Geofence Toggle Simulator */}
+              <button
+                style={styles.toggleDemoBtn}
+                onClick={() => setSimulatedInsidePerimeter(!simulatedInsidePerimeter)}
+              >
+                Simulate Location: {simulatedInsidePerimeter ? 'Inside 500m' : 'Outside 500m'}
+              </button>
+            </div>
+
+            {/* Dynamic Queue Wait Box */}
+            <div style={styles.queueMetricsBox}>
+              <div style={styles.metricItem}>
+                <small style={styles.metricLabel}>YOUR QUEUE POSITION</small>
+                <div style={styles.metricVal}>#{queueStatus.totalDevoteesInQueue}</div>
+              </div>
+              <div style={styles.metricItem}>
+                <small style={styles.metricLabel}>GATE THROUGHPUT</small>
+                <div style={styles.metricVal}>{queueStatus.throughputPerMin} dev/min</div>
+              </div>
+              <div style={styles.metricItem}>
+                <small style={styles.metricLabel}>DYNAMIC WAIT</small>
+                <div style={{ ...styles.metricVal, color: '#2563eb' }}>~{queueStatus.estimatedWaitMins} Mins</div>
+              </div>
+            </div>
+
+            {/* Main Ticket Card */}
+            <div style={{ ...styles.ticketPassCard, opacity: geofenceData.isWithinGeofence ? 1 : 0.8 }}>
               <div style={styles.passHeader}>
                 <div>
-                  <span style={styles.passGovTag}>GOVERNMENT SECURE E-PASS</span>
-                  <h4 style={styles.passTitle}>{bookedTicket.site} DARSHAN PASS</h4>
+                  <span style={styles.passGovTag}>GOVERNMENT SECURE DIGITAL PASS</span>
+                  <h4 style={styles.passTitle}>{bookedTicket.site} E-DARSHAN PASS</h4>
                 </div>
-                <span style={styles.validBadge}><CheckCircle2 size={12} /> VALIDATED</span>
+                <span 
+                  style={{
+                    ...styles.validBadge,
+                    backgroundColor: geofenceData.isWithinGeofence ? '#ecfdf5' : '#fff7ed',
+                    color: geofenceData.isWithinGeofence ? '#10b981' : '#f97316',
+                    borderColor: geofenceData.isWithinGeofence ? '#a7f3d0' : '#ffedd5'
+                  }}
+                >
+                  {geofenceData.isWithinGeofence ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                  {geofenceData.isWithinGeofence ? 'ACTIVE GEOFENCED' : 'INACTIVE (OUTSIDE)'}
+                </span>
               </div>
 
               <div style={styles.passBody}>
@@ -199,7 +357,10 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(bookedTicket.qrToken)}`} 
                     alt="HMAC QR Code Pass" 
-                    style={styles.qrImg}
+                    style={{
+                      ...styles.qrImg,
+                      filter: geofenceData.isWithinGeofence ? 'none' : 'grayscale(80%)'
+                    }}
                   />
                   <span style={styles.qrTokenText}>{bookedTicket.qrToken.substring(0, 18)}...</span>
                 </div>
@@ -216,7 +377,7 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
                   <div style={styles.detailRow}>
                     <Clock size={13} color="var(--text-muted)" />
                     <div>
-                      <small style={styles.detailLabel}>TIME SLOT</small>
+                      <small style={styles.detailLabel}>TIME SLOT WINDOW</small>
                       <div style={styles.detailVal}>{bookedTicket.slotTime}</div>
                     </div>
                   </div>
@@ -224,7 +385,7 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
                   <div style={styles.detailRow}>
                     <ShieldCheck size={13} color="var(--color-blue)" />
                     <div>
-                      <small style={styles.detailLabel}>PASS TYPE</small>
+                      <small style={styles.detailLabel}>PASS TYPE & STATUS</small>
                       <div style={{ ...styles.detailVal, color: bookedTicket.isPriority ? '#10b981' : 'var(--color-blue)' }}>
                         {bookedTicket.isPriority ? '⭐ PRIORITY FAST-TRACK' : 'STANDARD REGULAR'}
                       </div>
@@ -232,20 +393,28 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
                   </div>
                 </div>
               </div>
+
+              <div style={styles.pwaNotice}>
+                <WifiOff size={12} color="#0284c7" />
+                <span>Encrypted HMAC Token Cached Offline in PWA (No 5G Needed at Gate)</span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '12px' }}>
+            <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '4px' }}>
               <button 
                 style={styles.downloadBtn}
                 onClick={() => window.print()}
               >
-                <Download size={14} /> Print / Save E-Pass
+                <Download size={14} /> Print / Save Offline Pass
               </button>
               <button 
                 style={styles.newBookingBtn}
-                onClick={() => setBookedTicket(null)}
+                onClick={() => {
+                  setBookedTicket(null);
+                  try { localStorage.removeItem('darshansetu_offline_passes'); } catch(e){}
+                }}
               >
-                Book Another Ticket
+                Book New Slot
               </button>
             </div>
 
@@ -264,12 +433,12 @@ const styles = {
     left: 0,
     width: '100vw',
     height: '100vh',
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    backdropFilter: 'blur(4px)',
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    backdropFilter: 'blur(5px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10000,
+    zIndex: 10000
   },
   modalCard: {
     backgroundColor: 'var(--bg-card)',
@@ -277,40 +446,46 @@ const styles = {
     borderRadius: '16px',
     padding: '24px',
     width: '90%',
-    maxWidth: '540px',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+    maxWidth: '560px',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.25)'
   },
   modalHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '20px',
+    marginBottom: '16px',
     borderBottom: '1px solid var(--border-color)',
-    paddingBottom: '12px',
+    paddingBottom: '10px'
+  },
+  govSubHeader: {
+    fontSize: '9px',
+    fontWeight: '800',
+    color: 'var(--color-blue)',
+    letterSpacing: '0.8px'
   },
   closeBtn: {
     background: 'none',
     border: 'none',
     color: 'var(--text-muted)',
     cursor: 'pointer',
-    padding: '4px',
+    padding: '4px'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     gap: '14px',
-    fontFamily: 'var(--font-main)',
+    fontFamily: 'var(--font-main)'
   },
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '4px',
+    gap: '4px'
   },
   label: {
     fontSize: '10px',
     fontWeight: '700',
     color: 'var(--text-secondary)',
-    letterSpacing: '0.5px',
+    letterSpacing: '0.5px'
   },
   input: {
     padding: '10px',
@@ -319,7 +494,7 @@ const styles = {
     backgroundColor: 'var(--bg-item)',
     color: 'var(--text-primary)',
     fontSize: '13px',
-    width: '100%',
+    width: '100%'
   },
   select: {
     padding: '10px',
@@ -328,7 +503,7 @@ const styles = {
     backgroundColor: 'var(--bg-item)',
     color: 'var(--text-primary)',
     fontSize: '13px',
-    width: '100%',
+    width: '100%'
   },
   submitBtn: {
     marginTop: '8px',
@@ -340,60 +515,103 @@ const styles = {
     fontWeight: '700',
     fontSize: '14px',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.2s ease'
   },
   ticketResultContainer: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '12px',
+    gap: '10px'
+  },
+  geofenceBanner: {
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: '10px',
+    border: '1px solid',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  toggleDemoBtn: {
+    padding: '4px 8px',
+    borderRadius: '6px',
+    border: '1px solid var(--border-color)',
+    backgroundColor: 'var(--bg-card)',
+    fontSize: '10px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    color: 'var(--text-primary)'
+  },
+  queueMetricsBox: {
+    width: '100%',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr 1fr',
+    gap: '8px',
+    backgroundColor: 'var(--bg-item)',
+    padding: '10px',
+    borderRadius: '10px',
+    border: '1px solid var(--border-color)',
+    textAlign: 'center'
+  },
+  metricItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px'
+  },
+  metricLabel: {
+    fontSize: '9px',
+    fontWeight: '700',
+    color: 'var(--text-muted)'
+  },
+  metricVal: {
+    fontSize: '13px',
+    fontWeight: '800',
+    color: 'var(--text-primary)'
   },
   ticketPassCard: {
     width: '100%',
     backgroundColor: '#ffffff',
     border: '2px dashed var(--color-blue)',
     borderRadius: '14px',
-    padding: '18px',
+    padding: '16px',
     boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)',
-    color: '#0f172a',
+    color: '#0f172a'
   },
   passHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     borderBottom: '1px solid #e2e8f0',
-    paddingBottom: '10px',
-    marginBottom: '14px',
+    paddingBottom: '8px',
+    marginBottom: '12px'
   },
   passGovTag: {
     fontSize: '9px',
     fontWeight: '800',
     color: '#2563eb',
-    letterSpacing: '0.8px',
+    letterSpacing: '0.8px'
   },
   passTitle: {
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: '800',
     color: '#0f172a',
-    margin: '2px 0 0 0',
+    margin: '2px 0 0 0'
   },
   validBadge: {
     fontSize: '10px',
     fontWeight: '700',
-    backgroundColor: '#ecfdf5',
-    color: '#10b981',
-    border: '1px solid #a7f3d0',
+    border: '1px solid',
     padding: '2px 8px',
     borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
-    gap: '4px',
+    gap: '4px'
   },
   passBody: {
     display: 'grid',
-    gridTemplateColumns: '140px 1fr',
-    gap: '16px',
-    alignItems: 'center',
+    gridTemplateColumns: '130px 1fr',
+    gap: '14px',
+    alignItems: 'center'
   },
   qrSection: {
     display: 'flex',
@@ -401,38 +619,50 @@ const styles = {
     alignItems: 'center',
     gap: '6px',
     borderRight: '1px solid #e2e8f0',
-    paddingRight: '14px',
+    paddingRight: '12px'
   },
   qrImg: {
-    width: '120px',
-    height: '120px',
+    width: '110px',
+    height: '110px',
     borderRadius: '8px',
     border: '1px solid #cbd5e1',
+    transition: 'filter 0.3s ease'
   },
   qrTokenText: {
     fontSize: '9px',
     fontFamily: 'monospace',
-    color: '#64748b',
+    color: '#64748b'
   },
   detailsSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px',
+    gap: '8px'
   },
   detailRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '8px'
   },
   detailLabel: {
     fontSize: '9px',
     fontWeight: '700',
-    color: '#64748b',
+    color: '#64748b'
   },
   detailVal: {
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '700',
-    color: '#0f172a',
+    color: '#0f172a'
+  },
+  pwaNotice: {
+    marginTop: '10px',
+    paddingTop: '8px',
+    borderTop: '1px solid #f1f5f9',
+    fontSize: '10px',
+    color: '#0284c7',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontWeight: '600'
   },
   downloadBtn: {
     flex: 1,
@@ -447,17 +677,17 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '6px',
+    gap: '6px'
   },
   newBookingBtn: {
-    padding: '10px 16px',
+    padding: '10px 14px',
     borderRadius: '8px',
     border: '1px solid #cbd5e1',
     backgroundColor: '#f8fafc',
     color: '#334155',
     fontWeight: '700',
     fontSize: '12px',
-    cursor: 'pointer',
+    cursor: 'pointer'
   }
 };
 

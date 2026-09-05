@@ -10,6 +10,7 @@ import LiveAlerts from './components/LiveAlerts';
 import BottomMetrics from './components/BottomMetrics';
 import TicketBookingModal from './components/TicketBookingModal';
 import SosEmergencyModal from './components/SosEmergencyModal';
+import GuardScannerModal from './components/GuardScannerModal';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -24,6 +25,7 @@ const App = () => {
   // Modal States
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isGuardScannerOpen, setIsGuardScannerOpen] = useState(false);
 
   // Theme State (light / dark)
   const [theme, setTheme] = useState('light');
@@ -393,7 +395,13 @@ const App = () => {
       {/* Main Bottom Section Layout */}
       <div style={styles.contentLayout}>
         {/* Left Sidebar */}
-        <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} t={t} onOpenTicketModal={() => setIsTicketModalOpen(true)} />
+        <Sidebar 
+          activeModule={activeModule} 
+          setActiveModule={setActiveModule} 
+          t={t} 
+          onOpenTicketModal={() => setIsTicketModalOpen(true)} 
+          onOpenGuardScannerModal={() => setIsGuardScannerOpen(true)}
+        />
 
         {/* Scrollable Work Area */}
         <main style={styles.workArea}>
@@ -927,6 +935,12 @@ const App = () => {
         onClose={() => setIsTicketModalOpen(false)} 
         selectedSite={selectedSite}
         setSelectedSite={setSelectedSite}
+      />
+
+      {/* Security Guard Gate Scanner Modal */}
+      <GuardScannerModal 
+        isOpen={isGuardScannerOpen}
+        onClose={() => setIsGuardScannerOpen(false)}
       />
 
       {/* SOS Emergency Dispatch Modal */}

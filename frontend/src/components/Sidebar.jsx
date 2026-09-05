@@ -13,7 +13,7 @@ import {
   LogOut 
 } from 'lucide-react';
 
-const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal }) => {
+const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal, onOpenGuardScannerModal }) => {
   const modules = [
     { id: 'live-crowd', name: t.liveCrowd, icon: Users },
     { id: 'forecast', name: t.forecast, icon: TrendingUp },
@@ -56,6 +56,21 @@ const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal }) => {
       >
         <span style={{ marginRight: '10px', fontSize: '16px' }}>🎫</span>
         <span style={styles.navText}>Book Darshan Ticket</span>
+      </button>
+
+      {/* Security Guard Gate Scanner Button */}
+      <button 
+        style={{
+          ...styles.navItem,
+          backgroundColor: '#ecfdf5',
+          color: '#10b981',
+          fontWeight: '700',
+          marginTop: '4px'
+        }}
+        onClick={onOpenGuardScannerModal}
+      >
+        <span style={{ marginRight: '10px', fontSize: '16px' }}>🛡️</span>
+        <span style={styles.navText}>Guard Gate Scanner</span>
       </button>
 
       {/* Modules Section */}
