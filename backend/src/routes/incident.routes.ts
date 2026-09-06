@@ -11,7 +11,8 @@ import {
   setThreatLevel,
   getThreatLevel,
   dispatchIntercomAgency,
-  getIntercomDirectory
+  getIntercomDirectory,
+  generateMagisterialReport
 } from '../controllers/incident.controller';
 
 const router = Router();
@@ -36,5 +37,8 @@ router.get('/threat-level/:siteId', getThreatLevel);
 // Feature 4: 1-Click Multi-Agency Rapid Intercom Routes
 router.post('/intercom/dispatch', dispatchIntercomAgency);
 router.get('/intercom/directory/:siteId', getIntercomDirectory);
+
+// Feature 8: Magisterial Incident Audit & Legal Report Generator Route
+router.post('/magisterial-report', generateMagisterialReport);
 
 export default router;
