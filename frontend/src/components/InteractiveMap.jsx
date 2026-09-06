@@ -106,13 +106,13 @@ const InteractiveMap = ({ filters, setFilters, selectedSite = 'dwarka', stats })
 
           const tileUrl = mapType === 'satellite' 
             ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
-            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
           window.L.tileLayer(tileUrl, {
-            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'CARTO & OpenStreetMap',
+            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'Google Maps / CARTO & OpenStreetMap',
             maxZoom: 21,
-            maxNativeZoom: mapType === 'satellite' ? 20 : 18,
-            subdomains: ['a', 'b', 'c']
+            maxNativeZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
           }).addTo(map);
 
           mapInstanceRef.current = map;
@@ -126,13 +126,13 @@ const InteractiveMap = ({ filters, setFilters, selectedSite = 'dwarka', stats })
 
           const tileUrl = mapType === 'satellite' 
             ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
-            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            : 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
 
           window.L.tileLayer(tileUrl, {
-            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'CARTO & OpenStreetMap',
+            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'Google Maps / CARTO & OpenStreetMap',
             maxZoom: 21,
-            maxNativeZoom: mapType === 'satellite' ? 20 : 18,
-            subdomains: ['a', 'b', 'c']
+            maxNativeZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
           }).addTo(mapInstanceRef.current);
 
           mapInstanceRef.current.setView([telemetry.center.lat, telemetry.center.lng], 17);

@@ -194,7 +194,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
       });
 
       let tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
-      let tileAttribution = 'Map data &copy; Google Satellite Imagery';
+      let tileAttribution = 'Imagery &copy; Google Satellite & Hybrid Ground View';
       let maxNativeZoom = 20;
 
       if (mapLayer === 'satellite') {
@@ -202,16 +202,16 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
         tileAttribution = 'Imagery &copy; Google Satellite & Hybrid Ground View';
         maxNativeZoom = 20;
       } else {
-        tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png';
-        tileAttribution = 'Map data &copy; OpenStreetMap contributors';
-        maxNativeZoom = 18;
+        tileUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+        tileAttribution = 'Map data &copy; Google Maps / OpenStreetMap contributors';
+        maxNativeZoom = 20;
       }
 
       L.tileLayer(tileUrl, {
         attribution: tileAttribution,
         maxZoom: 21,
         maxNativeZoom: maxNativeZoom,
-        subdomains: ['a', 'b', 'c']
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
       }).addTo(mapInstanceRef.current);
 
       // Render Checkpoint Markers
