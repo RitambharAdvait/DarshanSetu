@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, QrCode, Clock, User, ShieldCheck, Download, CheckCircle2, Navigation, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
+import { X, QrCode, Clock, User, ShieldCheck, Download, CheckCircle2, Navigation, WifiOff, AlertCircle, Package } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -23,7 +23,6 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
   const [bookedTicket, setBookedTicket] = useState(null);
 
   // Geofence & Dynamic Queue State
-  const [devoteeLocation, setDevoteeLocation] = useState({ lat: 22.2395, lng: 68.9685 }); // Default ~200m from Dwarka
   const [geofenceData, setGeofenceData] = useState({
     isWithinGeofence: true,
     distanceMeters: 220,
@@ -36,6 +35,14 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
   });
   const [simulatedInsidePerimeter, setSimulatedInsidePerimeter] = useState(true);
 
+  // Smart Footwear & Locker State (Linked to unified QR token)
+  const [lockerState, setLockerState] = useState({
+    stand: 'Stand B',
+    shelf: 'Shelf #44',
+    counter: 'Stand B • Exit Counter 2',
+    status: 'STORED' // 'STORED' | 'PRE_FETCH_ACTIVE' | 'READY'
+  });
+
   // Load cached ticket from LocalStorage on open
   useEffect(() => {
     if (isOpen) {
@@ -45,6 +52,14 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
           const passes = JSON.parse(cached);
           if (passes && passes.length > 0) {
             setBookedTicket(passes[0]);
+            if (passes[0].lockerTag) {
+              setLockerState(prev => ({
+                ...prev,
+                stand: passes[0].lockerTag.stand || 'Stand B',
+                shelf: passes[0].lockerTag.shelf || 'Shelf #44',
+                counter: passes[0].lockerTag.counter || 'Stand B • Exit Counter 2'
+              }));
+            }
           }
         }
       } catch (e) {
@@ -53,30 +68,10 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
     }
   }, [isOpen]);
 
-  // Live Geolocation Watcher
-  useEffect(() => {
-    if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          if (!simulatedInsidePerimeter) {
-            setDevoteeLocation({
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude
-            });
-          }
-        },
-        () => {},
-        { enableHighAccuracy: true }
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [simulatedInsidePerimeter]);
-
   // Periodically verify Geofence & Dynamic Queue Status
   useEffect(() => {
     if (bookedTicket) {
       const currentTemple = TEMPLE_COORDS[selectedSite.toLowerCase()] || TEMPLE_COORDS.dwarka;
-      
       const targetLat = simulatedInsidePerimeter ? currentTemple.lat + 0.0018 : currentTemple.lat + 0.015;
       const targetLng = simulatedInsidePerimeter ? currentTemple.lng + 0.0012 : currentTemple.lng + 0.012;
 
@@ -148,10 +143,17 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
           site: selectedSite.toUpperCase(),
           slotTime: `${formData.slotDate} (${formData.slotTime})`,
           isPriority: formData.isPriority,
+          lockerTag: data.lockerTag || { stand: 'Stand B', shelf: 'Shelf #44', counter: 'Stand B • Exit Counter 2' },
           createdAt: new Date().toISOString()
         };
 
         setBookedTicket(passObj);
+        setLockerState({
+          stand: passObj.lockerTag.stand,
+          shelf: passObj.lockerTag.shelf,
+          counter: passObj.lockerTag.counter,
+          status: 'STORED'
+        });
 
         // Cache to LocalStorage for offline PWA access
         try {
@@ -168,13 +170,50 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
           site: selectedSite.toUpperCase(),
           slotTime: `${formData.slotDate} (${formData.slotTime})`,
           isPriority: formData.isPriority,
+          lockerTag: { stand: 'Stand B', shelf: 'Shelf #44', counter: 'Stand B • Exit Counter 2' },
           createdAt: new Date().toISOString()
         };
         setBookedTicket(mockPassObj);
+        setLockerState({
+          stand: 'Stand B',
+          shelf: 'Shelf #44',
+          counter: 'Stand B • Exit Counter 2',
+          status: 'STORED'
+        });
         try {
           localStorage.setItem('darshansetu_offline_passes', JSON.stringify([mockPassObj]));
         } catch (e) {}
       });
+  };
+
+  // Pre-Fetch Footwear Alert Handler (Triggered on Sanctum Exit)
+  const handlePreFetchFootwear = () => {
+    if (!bookedTicket) return;
+
+    if (lockerState.status === 'STORED') {
+      setLockerState(prev => ({ ...prev, status: 'PRE_FETCH_ACTIVE' }));
+
+      fetch(`${BACKEND_URL}/api/tickets/lockers/pre-fetch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qrToken: bookedTicket.qrToken })
+      })
+        .then(res => res.json())
+        .then(() => {
+          // After brief transition, mark ready at counter
+          setTimeout(() => {
+            setLockerState(prev => ({ ...prev, status: 'READY' }));
+          }, 3500);
+        })
+        .catch(() => {
+          setTimeout(() => {
+            setLockerState(prev => ({ ...prev, status: 'READY' }));
+          }, 3500);
+        });
+    } else if (lockerState.status === 'READY') {
+      alert(`✅ Footwear Handover Complete! Bag retrieved from ${lockerState.shelf} at ${lockerState.counter}`);
+      setLockerState(prev => ({ ...prev, status: 'STORED' }));
+    }
   };
 
   return (
@@ -186,7 +225,7 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <QrCode size={20} color="var(--color-blue)" />
             <div>
-              <span style={styles.govSubHeader}>REAL-TIME SMART QUEUE PLATFORM</span>
+              <span style={styles.govSubHeader}>REAL-TIME SMART PILGRIMAGE PLATFORM</span>
               <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
                 DIGITAL DARSHAN PASS & GEOFENCE ACTIVATION
               </h3>
@@ -333,7 +372,7 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
             </div>
 
             {/* Main Ticket Card */}
-            <div style={{ ...styles.ticketPassCard, opacity: geofenceData.isWithinGeofence ? 1 : 0.8 }}>
+            <div style={{ ...styles.ticketPassCard, opacity: geofenceData.isWithinGeofence ? 1 : 0.85 }}>
               <div style={styles.passHeader}>
                 <div>
                   <span style={styles.passGovTag}>GOVERNMENT SECURE DIGITAL PASS</span>
@@ -385,13 +424,71 @@ const TicketBookingModal = ({ isOpen, onClose, selectedSite, setSelectedSite }) 
                   <div style={styles.detailRow}>
                     <ShieldCheck size={13} color="var(--color-blue)" />
                     <div>
-                      <small style={styles.detailLabel}>PASS TYPE & STATUS</small>
+                      <small style={styles.detailLabel}>PASS TYPE</small>
                       <div style={{ ...styles.detailVal, color: bookedTicket.isPriority ? '#10b981' : 'var(--color-blue)' }}>
                         {bookedTicket.isPriority ? '⭐ PRIORITY FAST-TRACK' : 'STANDARD REGULAR'}
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Smart Footwear & Locker Tag (Unified QR Token Feature) */}
+              <div style={styles.lockerBox}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '16px' }}>👟</span>
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: '800', color: '#0f172a' }}>
+                        SMART FOOTWEAR & LOCKER TAG (UNIFIED QR)
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#475569' }}>
+                        {lockerState.stand} • <strong>{lockerState.shelf}</strong> • 2 Pairs Footwear + Mobile
+                      </div>
+                    </div>
+                  </div>
+                  <span 
+                    style={{
+                      fontSize: '9px',
+                      fontWeight: '800',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      backgroundColor: lockerState.status === 'PRE_FETCH_ACTIVE' ? '#fef3c7' : lockerState.status === 'READY' ? '#ecfdf5' : '#f1f5f9',
+                      color: lockerState.status === 'PRE_FETCH_ACTIVE' ? '#b45309' : lockerState.status === 'READY' ? '#047857' : '#475569',
+                      border: '1px solid currentColor'
+                    }}
+                  >
+                    {lockerState.status === 'PRE_FETCH_ACTIVE' && '⚡ PRE-FETCH DISPATCHED'}
+                    {lockerState.status === 'READY' && '🟢 READY AT COUNTER'}
+                    {lockerState.status === 'STORED' && '📦 STORED SAFE'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  style={{
+                    marginTop: '8px',
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: lockerState.status === 'STORED' ? '#2563eb' : lockerState.status === 'PRE_FETCH_ACTIVE' ? '#d97706' : '#10b981',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onClick={handlePreFetchFootwear}
+                >
+                  {lockerState.status === 'STORED' && '🚪 Exiting Sanctum: Pre-Fetch My Footwear (Alert Counter)'}
+                  {lockerState.status === 'PRE_FETCH_ACTIVE' && '⚡ Pre-Fetch Dispatched: Staff Moving Shelf #44 to Exit Counter B2...'}
+                  {lockerState.status === 'READY' && '🟢 Shoe Bag #44 Ready at Exit Counter B2 (Click to Complete Handover)'}
+                </button>
               </div>
 
               <div style={styles.pwaNotice}>
@@ -652,6 +749,13 @@ const styles = {
     fontSize: '12px',
     fontWeight: '700',
     color: '#0f172a'
+  },
+  lockerBox: {
+    marginTop: '12px',
+    padding: '10px',
+    borderRadius: '10px',
+    backgroundColor: '#f8fafc',
+    border: '1px solid #e2e8f0'
   },
   pwaNotice: {
     marginTop: '10px',
