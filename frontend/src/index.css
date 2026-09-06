@@ -68,9 +68,30 @@
 body {
   font-family: var(--font-main);
   background-color: var(--bg-primary);
+  background-image: radial-gradient(rgba(217, 119, 6, 0.06) 1px, transparent 1px),
+                    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ea580c' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M30 30c-4-8-12-8-12 0s8 8 12 0zm0 0c4-8 12-8 12 0s-8 8-12 0zm0 0c-8-4-8-12 0-12s8 8 0 12zm0 0c-8 4-8 12 0 12s8-8 0-12z'/%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 30px 30px, 60px 60px;
   color: var(--text-primary);
   overflow: hidden;
   height: 100vh;
+}
+
+/* Sacred Gold & Brass Decorative Trims */
+.temple-trim-border {
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(to right, rgba(217, 119, 6, 0.05), rgba(217, 119, 6, 0.6), rgba(217, 119, 6, 0.05)) 1;
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 50%, #991b1b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.temple-header-badge {
+  background: linear-gradient(90deg, #fff7ed 0%, #fef3c7 50%, #fff7ed 100%);
+  border: 1px solid #fde68a;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
 }
 
 #root {

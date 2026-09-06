@@ -310,6 +310,7 @@ const PilgrimPortal = ({
               }}>
                 {getTempleName(selectedSite)}
               </h1>
+              <div style={{ height: '3px', width: '120px', background: 'linear-gradient(90deg, #fde047 0%, #ea580c 60%, transparent 100%)', borderRadius: '2px', marginTop: '2px' }} />
             </div>
           </div>
 
