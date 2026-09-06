@@ -160,7 +160,7 @@ interface ThreatLevelState {
   level: 'LEVEL_1_GREEN' | 'LEVEL_2_YELLOW' | 'LEVEL_3_ORANGE' | 'LEVEL_4_RED';
   title: string;
   description: string;
-  gateSpeedRate: number; // Percentage modifier (100%, 80%, 50%, 0%)
+  gateSpeedRate: number;
   marshalsMobilized: number;
   lastUpdated: string;
   updatedBy: string;
@@ -234,6 +234,69 @@ const THREAT_LEVEL_METADATA = {
     gateSpeedRate: 0,
     marshalsMobilized: 45
   }
+};
+
+// ========================================================
+// FEATURE 4: 1-CLICK MULTI-AGENCY RAPID INTERCOM DIRECTORY
+// ========================================================
+interface IntercomAgency {
+  id: string;
+  name: string;
+  category: 'AMBULANCE' | 'POLICE' | 'FIRE' | 'POWER_GRID' | 'DISASTER';
+  phone: string;
+  radioChannel: string;
+  status: 'ONLINE' | 'ACTIVE_CALL' | 'STANDBY';
+  assignedUnit: string;
+}
+
+const intercomAgenciesDB: Record<string, IntercomAgency[]> = {
+  dwarka: [
+    {
+      id: 'AMB_108',
+      name: '108 On-Site Ambulance & Trauma Ward',
+      category: 'AMBULANCE',
+      phone: '108',
+      radioChannel: 'MED-FREQ-1',
+      status: 'ONLINE',
+      assignedUnit: 'Trauma Unit 1 (East Gate Parking)'
+    },
+    {
+      id: 'POL_112',
+      name: '112 District Police Control Room & SP Office',
+      category: 'POLICE',
+      phone: '112',
+      radioChannel: 'POLICE-TAC-4',
+      status: 'ONLINE',
+      assignedUnit: 'Pilgrimage Security Battalion'
+    },
+    {
+      id: 'FIRE_101',
+      name: '101 Fire & Disaster Rescue Brigade',
+      category: 'FIRE',
+      phone: '101',
+      radioChannel: 'FIRE-DIRECT',
+      status: 'ONLINE',
+      assignedUnit: 'Hydrant Quick-Deploy Tender'
+    },
+    {
+      id: 'POWER_GRID',
+      name: 'Substation Power Grid Rapid Cutoff',
+      category: 'POWER_GRID',
+      phone: '02892-234200',
+      radioChannel: 'GRID-CUTOFF-SEC',
+      status: 'ONLINE',
+      assignedUnit: 'Sector 1-4 Master Killswitch'
+    },
+    {
+      id: 'NDRF_HQ',
+      name: 'National Disaster Response Force (NDRF 6th Bn)',
+      category: 'DISASTER',
+      phone: '011-24363260',
+      radioChannel: 'NDRF-REGIONAL',
+      status: 'STANDBY',
+      assignedUnit: 'District Disaster Cell'
+    }
+  ]
 };
 
 // POST /api/incidents/sos
@@ -489,7 +552,6 @@ export const getGreenCorridorStatus = async (req: Request, res: Response) => {
 // FEATURE 3: 4-TIER TEMPLE ALERT THREAT DIAL (DEFCON STYLE)
 // ========================================================
 
-// POST /api/incidents/threat-level
 export const setThreatLevel = async (req: Request, res: Response) => {
   const { siteId, level, updatedBy, reason } = req.body;
 
@@ -513,7 +575,6 @@ export const setThreatLevel = async (req: Request, res: Response) => {
 
   threatLevelsDB[cleanSiteId] = updatedState;
 
-  // Broadcast threat level shift to all connected clients & gate barriers
   (req as any).io?.emit('threat_level_change', updatedState);
 
   res.json({
@@ -523,9 +584,56 @@ export const setThreatLevel = async (req: Request, res: Response) => {
   });
 };
 
-// GET /api/incidents/threat-level/:siteId
 export const getThreatLevel = async (req: Request, res: Response) => {
   const cleanSiteId = (req.params.siteId || 'dwarka').toLowerCase();
   const state = threatLevelsDB[cleanSiteId] || threatLevelsDB.dwarka;
   res.json({ state });
+};
+
+// ========================================================
+// FEATURE 4: 1-CLICK MULTI-AGENCY RAPID INTERCOM DIRECTORY
+// ========================================================
+
+// POST /api/incidents/intercom/dispatch
+export const dispatchIntercomAgency = async (req: Request, res: Response) => {
+  const { siteId, agencyId, message, operatorId } = req.body;
+
+  const cleanSiteId = (siteId || 'dwarka').toLowerCase();
+  const directory = intercomAgenciesDB[cleanSiteId] || intercomAgenciesDB.dwarka;
+  const targetAgency = directory.find(a => a.id === agencyId);
+
+  if (!targetAgency) {
+    return res.status(404).json({ error: 'Agency not found in directory' });
+  }
+
+  const dispatchEvent = {
+    id: `INT-${Math.floor(1000 + Math.random() * 9000)}`,
+    siteId: cleanSiteId,
+    agencyId,
+    agencyName: targetAgency.name,
+    phone: targetAgency.phone,
+    radioChannel: targetAgency.radioChannel,
+    message: message || `Emergency Rapid Response Alert initiated for ${targetAgency.name}`,
+    dispatchedAt: new Date().toISOString(),
+    operator: operatorId || 'Control Room Officer'
+  };
+
+  // Broadcast dispatch alert via WebSockets
+  (req as any).io?.emit('intercom_dispatch', dispatchEvent);
+
+  res.json({
+    success: true,
+    message: `🚨 MULTI-AGENCY INTERCOM DISPATCHED: ${targetAgency.name} (${targetAgency.phone}) alerted!`,
+    dispatch: dispatchEvent
+  });
+};
+
+// GET /api/incidents/intercom/directory/:siteId
+export const getIntercomDirectory = async (req: Request, res: Response) => {
+  const cleanSiteId = (req.params.siteId || 'dwarka').toLowerCase();
+  const directory = intercomAgenciesDB[cleanSiteId] || intercomAgenciesDB.dwarka;
+  res.json({
+    siteId: cleanSiteId,
+    directory
+  });
 };

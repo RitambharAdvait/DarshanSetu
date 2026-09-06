@@ -11,16 +11,21 @@ import {
   PlusCircle, 
   CheckCircle2, 
   Lock, 
-  RefreshCw,
-  Activity,
-  HeartPulse,
-  Radio,
-  Ambulance,
-  ArrowRight,
-  ShieldCheck,
-  AlertTriangle,
-  Flame,
-  Gauge
+  RefreshCw, 
+  Activity, 
+  HeartPulse, 
+  Radio, 
+  Ambulance, 
+  ArrowRight, 
+  ShieldCheck, 
+  AlertTriangle, 
+  Flame, 
+  Gauge, 
+  Zap, 
+  PhoneForwarded, 
+  Waves, 
+  Phone,
+  Power
 } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -39,6 +44,59 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
     updatedBy: 'Control Room Officer'
   });
   const [isUpdatingThreat, setIsUpdatingThreat] = useState(false);
+
+  // ==========================================
+  // FEATURE 4: MULTI-AGENCY INTERCOM STATE
+  // ==========================================
+  const [intercomAgencies, setIntercomAgencies] = useState([
+    {
+      id: 'AMB_108',
+      name: '108 On-Site Ambulance & Trauma Ward',
+      category: 'AMBULANCE',
+      phone: '108',
+      radioChannel: 'MED-FREQ-1',
+      status: 'ONLINE',
+      assignedUnit: 'Trauma Unit 1 (East Gate Parking)'
+    },
+    {
+      id: 'POL_112',
+      name: '112 District Police Control Room & SP Office',
+      category: 'POLICE',
+      phone: '112',
+      radioChannel: 'POLICE-TAC-4',
+      status: 'ONLINE',
+      assignedUnit: 'Pilgrimage Security Battalion'
+    },
+    {
+      id: 'FIRE_101',
+      name: '101 Fire & Disaster Rescue Brigade',
+      category: 'FIRE',
+      phone: '101',
+      radioChannel: 'FIRE-DIRECT',
+      status: 'ONLINE',
+      assignedUnit: 'Hydrant Quick-Deploy Tender'
+    },
+    {
+      id: 'POWER_GRID',
+      name: 'Substation Power Grid Rapid Cutoff',
+      category: 'POWER_GRID',
+      phone: '02892-234200',
+      radioChannel: 'GRID-CUTOFF-SEC',
+      status: 'ONLINE',
+      assignedUnit: 'Sector 1-4 Master Killswitch'
+    },
+    {
+      id: 'NDRF_HQ',
+      name: 'National Disaster Response Force (NDRF 6th Bn)',
+      category: 'DISASTER',
+      phone: '011-24363260',
+      radioChannel: 'NDRF-REGIONAL',
+      status: 'STANDBY',
+      assignedUnit: 'District Disaster Cell'
+    }
+  ]);
+  const [recentDispatches, setRecentDispatches] = useState([]);
+  const [isDispatching, setIsDispatching] = useState(false);
 
   // ==========================================
   // FEATURE 1: LOST PERSON STATE
@@ -122,6 +180,14 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
         if (data && data.corridors) setCorridors(data.corridors);
       })
       .catch(() => {});
+
+    // Intercom Directory
+    fetch(`${BACKEND_URL}/api/incidents/intercom/directory/${selectedSite}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.directory) setIntercomAgencies(data.directory);
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -143,6 +209,12 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
       socket.on('green_corridor_status', (data) => {
         if (data && data.corridor) {
           setCorridors(prev => prev.map(c => c.id === data.corridor.id ? data.corridor : c));
+        }
+      });
+
+      socket.on('intercom_dispatch', (dispatch) => {
+        if (dispatch) {
+          setRecentDispatches(prev => [dispatch, ...prev.slice(0, 4)]);
         }
       });
     }
@@ -190,6 +262,45 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
       .catch(() => {
         setIsUpdatingThreat(false);
         setThreatState(prev => ({ ...prev, level: newLevel }));
+      });
+  };
+
+  // Handle Intercom Quick Dispatch Action
+  const handleDispatchAgency = (agency) => {
+    if (agency.category === 'POWER_GRID') {
+      if (!window.confirm('⚡ CONFIRM POWER GRID CUTOFF: Cut master electrical power to prevent queue short-circuit fire?')) {
+        return;
+      }
+    }
+
+    setIsDispatching(true);
+    fetch(`${BACKEND_URL}/api/incidents/intercom/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteId: selectedSite,
+        agencyId: agency.id,
+        message: `Priority Emergency Dispatch Alert for ${agency.name}`
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsDispatching(false);
+        if (data && data.dispatch) {
+          setRecentDispatches(prev => [data.dispatch, ...prev.slice(0, 4)]);
+        }
+        alert(`🚨 INTERCOM DISPATCHED: ${agency.name} (${agency.phone}) notified immediately.`);
+      })
+      .catch(() => {
+        setIsDispatching(false);
+        const fallbackDispatch = {
+          id: `INT-${Math.floor(1000 + Math.random() * 9000)}`,
+          agencyName: agency.name,
+          phone: agency.phone,
+          dispatchedAt: new Date().toISOString()
+        };
+        setRecentDispatches(prev => [fallbackDispatch, ...prev.slice(0, 4)]);
+        alert(`🚨 Emergency Call Triggered: ${agency.name} (${agency.phone})`);
       });
   };
 
@@ -286,13 +397,23 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
     return `${m}:${s}`;
   };
 
-  // Threat Color Helpers
   const getThreatColor = (level) => {
     switch (level) {
       case 'LEVEL_4_RED': return '#ef4444';
       case 'LEVEL_3_ORANGE': return '#f97316';
       case 'LEVEL_2_YELLOW': return '#eab308';
       default: return '#10b981';
+    }
+  };
+
+  const getAgencyIcon = (category) => {
+    switch (category) {
+      case 'AMBULANCE': return <Ambulance size={18} color="#ef4444" />;
+      case 'POLICE': return <ShieldCheck size={18} color="#2563eb" />;
+      case 'FIRE': return <Flame size={18} color="#f97316" />;
+      case 'POWER_GRID': return <Power size={18} color="#eab308" />;
+      case 'DISASTER': return <Waves size={18} color="#06b6d4" />;
+      default: return <PhoneCall size={18} color="#64748b" />;
     }
   };
 
@@ -353,7 +474,6 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
         {/* The 4 Dial Buttons Grid */}
         <div style={styles.dialGrid}>
           
-          {/* Level 1: Green */}
           <button 
             type="button"
             style={{
@@ -372,7 +492,6 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             <div style={styles.dialBtnSub}>100% Gate Flow • Standard Patrols (12 Marshals)</div>
           </button>
 
-          {/* Level 2: Yellow */}
           <button 
             type="button"
             style={{
@@ -391,7 +510,6 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             <div style={styles.dialBtnSub}>80% Gate Flow • Bottleneck Marshals Standby (18)</div>
           </button>
 
-          {/* Level 3: Orange */}
           <button 
             type="button"
             style={{
@@ -410,7 +528,6 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             <div style={styles.dialBtnSub}>50% Gate Throttle • Holding Bays Active (28 Marshals)</div>
           </button>
 
-          {/* Level 4: Red */}
           <button 
             type="button"
             style={{
@@ -445,6 +562,83 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             </div>
           </div>
         </div>
+
+      </div>
+
+      {/* ======================================================== */}
+      {/* FEATURE 4: 1-CLICK MULTI-AGENCY RAPID INTERCOM DIRECTORY */}
+      {/* ======================================================== */}
+      <div className="card" style={styles.intercomPanel}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <PhoneForwarded size={20} color="#2563eb" />
+            <div>
+              <span style={styles.intercomTag}>DIRECT COMMAND DISPATCH</span>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                1-CLICK MULTI-AGENCY RAPID INTERCOM DIRECTORY
+              </h3>
+            </div>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            Direct lines to Police, Trauma Hospital, Fire & Disaster Base
+          </div>
+        </div>
+
+        {/* Intercom Cards Grid */}
+        <div style={styles.intercomGrid}>
+          {intercomAgencies.map((agency) => (
+            <div key={agency.id} className="card hover-lift" style={styles.agencyCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={styles.agencyIconBox}>
+                    {getAgencyIcon(agency.category)}
+                  </div>
+                  <div>
+                    <h4 style={styles.agencyName}>{agency.name}</h4>
+                    <span style={styles.agencyUnit}>{agency.assignedUnit}</span>
+                  </div>
+                </div>
+                <span style={styles.onlineBadge}>
+                  <span className="pulsing-dot-green"></span> {agency.radioChannel}
+                </span>
+              </div>
+
+              <div style={styles.agencyFooter}>
+                <a href={`tel:${agency.phone}`} style={styles.phoneLink}>
+                  <Phone size={12} /> Direct: <strong>{agency.phone}</strong>
+                </a>
+                <button
+                  type="button"
+                  disabled={isDispatching}
+                  style={{
+                    ...styles.dispatchBtn,
+                    backgroundColor: agency.category === 'POWER_GRID' ? '#eab308' : '#2563eb'
+                  }}
+                  onClick={() => handleDispatchAgency(agency)}
+                >
+                  {agency.category === 'POWER_GRID' ? '⚡ Emergency Cutoff' : '🚨 1-Click Dispatch Alert'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recent Dispatches Log */}
+        {recentDispatches.length > 0 && (
+          <div style={styles.dispatchLogBox}>
+            <small style={{ fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)' }}>
+              RECENT INTERCOM TRANSMISSION AUDIT:
+            </small>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+              {recentDispatches.map((d, i) => (
+                <div key={i} style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={12} color="#10b981" />
+                  <strong>{d.agencyName}</strong> ({d.phone}) dispatched at {new Date(d.dispatchedAt).toLocaleTimeString()}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -966,6 +1160,99 @@ const styles = {
     borderRadius: '10px',
     backgroundColor: 'var(--bg-item)',
     borderLeft: '4px solid'
+  },
+  intercomPanel: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+    borderLeft: '4px solid #2563eb'
+  },
+  intercomTag: {
+    fontSize: '9px',
+    fontWeight: '800',
+    color: '#2563eb',
+    letterSpacing: '0.8px'
+  },
+  intercomGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '12px',
+    marginTop: '4px'
+  },
+  agencyCard: {
+    padding: '14px',
+    borderRadius: '10px',
+    backgroundColor: 'var(--bg-item)',
+    border: '1px solid var(--border-color)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    gap: '12px'
+  },
+  agencyIconBox: {
+    width: '34px',
+    height: '34px',
+    borderRadius: '8px',
+    backgroundColor: 'var(--bg-card)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid var(--border-color)'
+  },
+  agencyName: {
+    margin: 0,
+    fontSize: '12px',
+    fontWeight: '800',
+    color: 'var(--text-primary)'
+  },
+  agencyUnit: {
+    fontSize: '10px',
+    color: 'var(--text-muted)'
+  },
+  onlineBadge: {
+    fontSize: '9px',
+    fontWeight: '800',
+    color: '#059669',
+    backgroundColor: '#ecfdf5',
+    padding: '2px 8px',
+    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontFamily: 'monospace'
+  },
+  agencyFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: '8px',
+    borderTop: '1px solid var(--border-color)'
+  },
+  phoneLink: {
+    fontSize: '11px',
+    color: '#2563eb',
+    textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontWeight: '700'
+  },
+  dispatchBtn: {
+    padding: '6px 12px',
+    borderRadius: '6px',
+    border: 'none',
+    color: '#ffffff',
+    fontSize: '10px',
+    fontWeight: '800',
+    cursor: 'pointer'
+  },
+  dispatchLogBox: {
+    marginTop: '6px',
+    padding: '10px',
+    borderRadius: '8px',
+    backgroundColor: 'var(--bg-item)',
+    border: '1px solid var(--border-color)'
   },
   metricsGrid: {
     display: 'grid',

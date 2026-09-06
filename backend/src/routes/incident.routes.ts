@@ -9,7 +9,9 @@ import {
   toggleGreenCorridor,
   getGreenCorridorStatus,
   setThreatLevel,
-  getThreatLevel
+  getThreatLevel,
+  dispatchIntercomAgency,
+  getIntercomDirectory
 } from '../controllers/incident.controller';
 
 const router = Router();
@@ -30,5 +32,9 @@ router.get('/green-corridor/status/:siteId', getGreenCorridorStatus);
 // Feature 3: 4-Tier Temple Alert Threat Dial Routes
 router.post('/threat-level', setThreatLevel);
 router.get('/threat-level/:siteId', getThreatLevel);
+
+// Feature 4: 1-Click Multi-Agency Rapid Intercom Routes
+router.post('/intercom/dispatch', dispatchIntercomAgency);
+router.get('/intercom/directory/:siteId', getIntercomDirectory);
 
 export default router;
