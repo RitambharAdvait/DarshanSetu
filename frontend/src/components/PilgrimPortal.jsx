@@ -234,18 +234,19 @@ const PilgrimPortal = ({
             style={{
               ...styles.heroBanner,
               position: 'relative',
-              backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%), url(${getTempleImage(selectedSite)})`,
+              backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.2) 45%, rgba(15, 23, 42, 0.85) 100%), url(${getTempleImage(selectedSite)})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              minHeight: '170px',
+              backgroundRepeat: 'no-repeat',
+              minHeight: '340px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'flex-end',
-              padding: '24px 28px',
-              borderRadius: '16px',
+              padding: '28px 32px',
+              borderRadius: '18px',
               overflow: 'hidden',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
-              border: '1px solid rgba(255, 255, 255, 0.15)'
+              boxShadow: '0 12px 30px -5px rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}
           >
             <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -253,13 +254,13 @@ const PilgrimPortal = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '4px 12px',
+                padding: '5px 14px',
                 borderRadius: '20px',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backgroundColor: 'rgba(0, 0, 0, 0.45)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
                 width: 'fit-content',
-                border: '1px solid rgba(255, 255, 255, 0.25)'
+                border: '1px solid rgba(255, 255, 255, 0.3)'
               }}>
                 <MapPin size={13} color="#fde047" />
                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
