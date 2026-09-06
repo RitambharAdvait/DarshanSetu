@@ -11,6 +11,7 @@ import BottomMetrics from './components/BottomMetrics';
 import TicketBookingModal from './components/TicketBookingModal';
 import SosEmergencyModal from './components/SosEmergencyModal';
 import GuardScannerModal from './components/GuardScannerModal';
+import EmergencyCommandDesk from './components/EmergencyCommandDesk';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -725,6 +726,15 @@ const App = () => {
               )}
 
             </div>
+          )}
+
+          {/* 4.5. EMERGENCY & SOS COMMAND CENTER MODULE */}
+          {activeModule === 'emergency' && (
+            <EmergencyCommandDesk 
+              selectedSite={selectedSite} 
+              socket={socket} 
+              t={t} 
+            />
           )}
 
           {/* 5. INCIDENT REPORTS MODULE */}

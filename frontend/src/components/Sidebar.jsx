@@ -18,6 +18,7 @@ const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal, onOpenGu
     { id: 'live-crowd', name: t.liveCrowd, icon: Users },
     { id: 'forecast', name: t.forecast, icon: TrendingUp },
     { id: 'traffic', name: t.traffic, icon: Car },
+    { id: 'emergency', name: 'Emergency Command', icon: PhoneCall },
   ];
 
   const moreItems = [
