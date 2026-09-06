@@ -457,9 +457,9 @@ const PilgrimPortal = ({
           </div>
 
           {/* Devotee Emergency Helpline Strip */}
-          <div className="card" style={styles.emergencyStrip}>
+          <div className="card sos-card-animated" style={styles.emergencyStrip}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={styles.emergencyIconBox}>
+              <div className="sos-icon-halo" style={styles.emergencyIconBox}>
                 <PhoneCall size={22} color="#ef4444" />
               </div>
               <div>
@@ -470,6 +470,7 @@ const PilgrimPortal = ({
               </div>
             </div>
             <button 
+              className="sos-btn-pulse"
               style={styles.emergencyCallBtn}
               onClick={onOpenSosModal}
             >

@@ -195,8 +195,8 @@ const Sidebar = ({
       )}
 
       {/* Emergency Helpline Card */}
-      <div style={styles.emergencyCard} onClick={onOpenSosModal} role="button" tabIndex={0}>
-        <div style={styles.emergencyIconContainer}>
+      <div className="sos-card-animated" style={styles.emergencyCard} onClick={onOpenSosModal} role="button" tabIndex={0}>
+        <div className="sos-icon-halo" style={styles.emergencyIconContainer}>
           <PhoneCall size={20} color="#ef4444" />
         </div>
         <div style={styles.emergencyInfo}>
