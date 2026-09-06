@@ -33,11 +33,13 @@ const App = () => {
 
   // Theme State (light / dark)
   const [theme, setTheme] = useState('light');
+  const [themePreset, setThemePreset] = useState('temple');
 
   // Synchronize theme with DOM attribute
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-preset', themePreset);
+  }, [theme, themePreset]);
 
   // Language State
   const [language, setLanguage] = useState('en');
@@ -413,6 +415,8 @@ const App = () => {
         setSelectedSite={setSelectedSite}
         userRole={userRole}
         setUserRole={setUserRole}
+        themePreset={themePreset}
+        setThemePreset={setThemePreset}
         t={t} 
         onOpenSosModal={() => setIsSosModalOpen(true)}
       />

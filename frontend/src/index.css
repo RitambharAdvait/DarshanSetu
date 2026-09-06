@@ -254,6 +254,25 @@ body {
   gap: 20px;
 }
 
+/* Tech Theme Preset Overrides */
+[data-preset="tech"] {
+  --bg-primary: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --bg-item: #f8fafc;
+  --border-color: #e2e8f0;
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --color-blue: #2563eb;
+  --color-blue-light: #eff6ff;
+  --color-blue-border: #bfdbfe;
+  
+  background-image: none !important;
+}
+
 /* Dark Mode Color Token Overrides */
 [data-theme="dark"] {
   --bg-primary: #0b0f19;

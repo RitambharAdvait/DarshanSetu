@@ -11,6 +11,8 @@ const Header = ({
   setSelectedSite, 
   userRole = 'admin', 
   setUserRole, 
+  themePreset = 'temple',
+  setThemePreset,
   t, 
   onOpenSosModal 
 }) => {
@@ -47,38 +49,65 @@ const Header = ({
         </div>
       </div>
 
-      {/* Role Segregation Switcher (Devotee vs Admin) */}
-      <div style={styles.roleSwitcherContainer}>
-        <button
-          type="button"
-          style={{
-            ...styles.roleBtn,
-            backgroundColor: userRole === 'pilgrim' ? '#ea580c' : 'transparent',
-            color: userRole === 'pilgrim' ? '#ffffff' : 'var(--text-secondary)',
-            boxShadow: userRole === 'pilgrim' ? '0 2px 8px rgba(234, 88, 12, 0.35)' : 'none'
-          }}
-          onClick={() => {
-            setUserRole('pilgrim');
-            setActiveModule('pilgrim');
-          }}
-        >
-          📱 Pilgrim Portal
-        </button>
-        <button
-          type="button"
-          style={{
-            ...styles.roleBtn,
-            backgroundColor: userRole === 'admin' ? '#1e293b' : 'transparent',
-            color: userRole === 'admin' ? '#ffffff' : 'var(--text-secondary)',
-            boxShadow: userRole === 'admin' ? '0 2px 8px rgba(30, 41, 59, 0.35)' : 'none'
-          }}
-          onClick={() => {
-            setUserRole('admin');
-            setActiveModule('dashboard');
-          }}
-        >
-          🏛️ Admin Command Center
-        </button>
+      {/* Center Controls: Role Switcher & Theme Preset Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={styles.roleSwitcherContainer}>
+          <button
+            type="button"
+            style={{
+              ...styles.roleBtn,
+              backgroundColor: userRole === 'pilgrim' ? '#ea580c' : 'transparent',
+              color: userRole === 'pilgrim' ? '#ffffff' : 'var(--text-secondary)',
+              boxShadow: userRole === 'pilgrim' ? '0 2px 8px rgba(234, 88, 12, 0.35)' : 'none'
+            }}
+            onClick={() => {
+              setUserRole('pilgrim');
+              setActiveModule('pilgrim');
+            }}
+          >
+            📱 Pilgrim Portal
+          </button>
+          <button
+            type="button"
+            style={{
+              ...styles.roleBtn,
+              backgroundColor: userRole === 'admin' ? '#1e293b' : 'transparent',
+              color: userRole === 'admin' ? '#ffffff' : 'var(--text-secondary)',
+              boxShadow: userRole === 'admin' ? '0 2px 8px rgba(30, 41, 59, 0.35)' : 'none'
+            }}
+            onClick={() => {
+              setUserRole('admin');
+              setActiveModule('dashboard');
+            }}
+          >
+            🏛️ Admin Command Center
+          </button>
+        </div>
+
+        {/* Theme Preset Switcher (Saffron Temple vs Modern Tech) */}
+        {setThemePreset && (
+          <button
+            type="button"
+            onClick={() => setThemePreset(prev => prev === 'temple' ? 'tech' : 'temple')}
+            title="Click to toggle theme style between Temple Saffron and Corporate Tech Blue"
+            style={{
+              padding: '6px 12px',
+              borderRadius: '10px',
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--bg-item)',
+              color: 'var(--text-primary)',
+              fontSize: '11px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            {themePreset === 'temple' ? '🛕 Temple Theme' : '💻 Tech Theme'}
+          </button>
+        )}
       </div>
 
       {/* Right Controls & Info */}
