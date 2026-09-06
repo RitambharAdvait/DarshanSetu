@@ -31,12 +31,42 @@ const PilgrimPortal = ({
   onOpenSosModal, 
   stats, 
   forecastData = [], 
-  t 
+  t,
+  activeModule = 'pilgrim',
+  setActiveModule
 }) => {
   const currentSiteData = SITES_DATA[selectedSite.toLowerCase()] || SITES_DATA.dwarka;
 
-  // Active Sub-tab in Pilgrim View
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'queue' | 'planner' | 'amenities' | 'lost'
+  // Derive activeTab directly from activeModule (keeps sidebar in 100% sync)
+  const getTabFromModule = (mod) => {
+    switch (mod) {
+      case 'pilgrim-queue': return 'queue';
+      case 'pilgrim-planner': return 'planner';
+      case 'pilgrim-amenities': return 'amenities';
+      case 'pilgrim-lost': return 'lost';
+      case 'pilgrim':
+      default: return 'overview';
+    }
+  };
+
+  const getModuleFromTab = (tab) => {
+    switch (tab) {
+      case 'queue': return 'pilgrim-queue';
+      case 'planner': return 'pilgrim-planner';
+      case 'amenities': return 'pilgrim-amenities';
+      case 'lost': return 'pilgrim-lost';
+      case 'overview':
+      default: return 'pilgrim';
+    }
+  };
+
+  const activeTab = getTabFromModule(activeModule);
+
+  const setActiveTab = (newTab) => {
+    if (setActiveModule) {
+      setActiveModule(getModuleFromTab(newTab));
+    }
+  };
 
   // Lost Person Devotee Form State
   const [lostForm, setLostForm] = useState({

@@ -449,6 +449,8 @@ const App = () => {
               stats={stats}
               forecastData={forecastData}
               t={t}
+              activeModule={activeModule}
+              setActiveModule={setActiveModule}
             />
           )}
 

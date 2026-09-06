@@ -210,24 +210,24 @@ const Sidebar = ({
       <div style={styles.bottomSection}>
         <button 
           style={{...styles.navItem, ...styles.bottomNavItem}}
-          onClick={() => alert(t.supportAlert)}
+          onClick={() => alert(t?.supportAlert || '📞 24x7 DarshanSetu Support Desk:\n• Helpline: 1800-200-108 (Toll-Free)\n• Police Control: 112\n• Medical Emergency: 108\n• Email: support@darshansetu.gov.in')}
         >
           <HelpCircle size={18} style={styles.icon} />
-          <span style={styles.navText}>{t.supportCenter}</span>
+          <span style={styles.navText}>{t?.supportCenter || 'Support Center'}</span>
         </button>
         <button 
           style={{...styles.navItem, ...styles.bottomNavItem}}
-          onClick={() => alert(t.aboutAlert)}
+          onClick={() => alert(t?.aboutAlert || '🕉️ DarshanSetu v2.4 (Enterprise Edition)\nIntelligent Multi-Temple Crowd Management, Conformal AI Forecasting & Rapid Magisterial Incident Audit Platform.')}
         >
           <Info size={18} style={styles.icon} />
-          <span style={styles.navText}>{t.aboutDialog}</span>
+          <span style={styles.navText}>{t?.aboutDialog || 'About Darshan Setu'}</span>
         </button>
         <button 
           style={{...styles.navItem, ...styles.logoutItem}}
-          onClick={() => alert('Logging out...')}
+          onClick={() => alert('🔒 Session secured. You can switch between Devotee/Pilgrim and Admin/Police views anytime using the top switcher.')}
         >
           <LogOut size={18} style={styles.logoutIcon} />
-          <span style={styles.logoutText}>{t.logout}</span>
+          <span style={styles.logoutText}>{t?.logout || 'Logout'}</span>
         </button>
       </div>
     </div>
