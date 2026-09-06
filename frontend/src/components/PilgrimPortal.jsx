@@ -72,6 +72,16 @@ const PilgrimPortal = ({
     }
   };
 
+  const getTempleImage = (site) => {
+    switch (site?.toLowerCase()) {
+      case 'dwarka': return '/temples/dwarka.jpg';
+      case 'somnath': return '/temples/somnath.jpg';
+      case 'ambaji': return '/temples/ambaji.jpg';
+      case 'pavagadh': return '/temples/pavagadh.jpg';
+      default: return '/temples/dwarka.jpg';
+    }
+  };
+
   const getAartiTimings = (site) => {
     switch (site?.toLowerCase()) {
       case 'somnath':
@@ -232,19 +242,39 @@ const PilgrimPortal = ({
       {/* ======================================================== */}
       {activeTab === 'overview' && (
         <>
-          {/* Divine Welcome Banner */}
+          {/* Divine Welcome Banner with Temple Image */}
           <div className="card" style={styles.heroBanner}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <span style={styles.holyTag}>🕉️ JAI SHREE KRISHNA • OFFICIAL DEVOTEE SERVICES</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '280px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={styles.holyTag}>🕉️ SACRED PILGRIMAGE PRECINCT • OFFICIAL DEVOTEE SERVICES</span>
+                  <div style={styles.gateStatusPill}>
+                    <span className="pulsing-dot-green"></span>
+                    <span>GATES OPEN • SMOOTH FLOW</span>
+                  </div>
+                </div>
                 <h1 style={styles.templeTitle}>{getTempleName(selectedSite)}</h1>
                 <p style={styles.templeSub}>
                   Live Darshan Queue Status • Special Puja Passes • Real-Time Pilgrim Safety Network
                 </p>
               </div>
-              <div style={styles.gateStatusPill}>
-                <span className="pulsing-dot-green"></span>
-                <span>GATES OPEN • SMOOTH FLOW</span>
+
+              {/* Temple Picture Frame */}
+              <div style={styles.templeImageFrame}>
+                <img 
+                  src={getTempleImage(selectedSite)} 
+                  alt={getTempleName(selectedSite)}
+                  style={styles.templeImg}
+                  onError={(e) => {
+                    e.currentTarget.src = '/temples/dwarka.jpg';
+                  }}
+                />
+                <div style={styles.templeImgOverlay}>
+                  <MapPin size={12} color="#ffffff" />
+                  <span style={{ fontSize: '10px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
+                    {selectedSite.toUpperCase()} DHAM
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -840,6 +870,33 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px'
+  },
+  templeImageFrame: {
+    position: 'relative',
+    width: '260px',
+    height: '140px',
+    borderRadius: '14px',
+    overflow: 'hidden',
+    border: '2px solid rgba(217, 119, 6, 0.3)',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.12)',
+    flexShrink: 0
+  },
+  templeImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    transition: 'transform 0.3s ease'
+  },
+  templeImgOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: '6px 10px',
+    background: 'linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, transparent 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px'
   },
   holyTag: {
     fontSize: '10px',
