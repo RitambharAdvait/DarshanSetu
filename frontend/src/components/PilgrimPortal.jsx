@@ -20,10 +20,12 @@ import {
   Send
 } from 'lucide-react';
 
+import { SITES_DATA } from '../utils/siteData';
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const PilgrimPortal = ({ 
-  selectedSite, 
+  selectedSite = 'dwarka', 
   setSelectedSite, 
   onOpenTicketModal, 
   onOpenSosModal, 
@@ -31,6 +33,8 @@ const PilgrimPortal = ({
   forecastData = [], 
   t 
 }) => {
+  const currentSiteData = SITES_DATA[selectedSite.toLowerCase()] || SITES_DATA.dwarka;
+
   // Active Sub-tab in Pilgrim View
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'queue' | 'planner' | 'amenities' | 'lost'
 
@@ -41,12 +45,22 @@ const PilgrimPortal = ({
     gender: 'MALE',
     clothingDescription: '',
     language: 'Hindi / Gujarati',
-    lastSeenLocation: 'Main Queue Corridor — Pillar #14',
+    lastSeenLocation: currentSiteData.landmarks[0] || 'Main Queue Corridor — Pillar #14',
     contactPhone: '',
     guardianName: ''
   });
   const [isSubmittingLost, setIsSubmittingLost] = useState(false);
   const [lostSubmitSuccess, setLostSubmitSuccess] = useState(null);
+
+  // Update default landmark on site change
+  useEffect(() => {
+    if (currentSiteData && currentSiteData.landmarks) {
+      setLostForm(prev => ({
+        ...prev,
+        lastSeenLocation: currentSiteData.landmarks[0]
+      }));
+    }
+  }, [selectedSite]);
 
   // Next Aarti Countdown calculation
   const [aartiCountdown, setAartiCountdown] = useState('01h 42m');
@@ -63,13 +77,7 @@ const PilgrimPortal = ({
   }, []);
 
   const getTempleName = (site) => {
-    switch (site?.toLowerCase()) {
-      case 'dwarka': return 'Shri Dwarkadhish Temple (Jagat Mandir)';
-      case 'somnath': return 'Shri Somnath Jyotirlinga Temple';
-      case 'ambaji': return 'Shri Arasuri Ambaji Shaktipeeth';
-      case 'pavagadh': return 'Shri Mahakali Dham (Pavagadh Hill)';
-      default: return 'Shri Dwarkadhish Temple';
-    }
+    return SITES_DATA[site?.toLowerCase()]?.name || 'Shri Dwarkadhish Temple (Jagat Mandir)';
   };
 
   const getTempleImage = (site) => {
@@ -83,29 +91,7 @@ const PilgrimPortal = ({
   };
 
   const getAartiTimings = (site) => {
-    switch (site?.toLowerCase()) {
-      case 'somnath':
-        return [
-          { name: 'Mangala Aarti', time: '07:00 AM', status: 'COMPLETED' },
-          { name: 'Bhog Aarti', time: '12:00 PM', status: 'UPCOMING' },
-          { name: 'Sandhya Maha Aarti', time: '07:00 PM', status: 'UPCOMING' },
-          { name: 'Shayan Aarti', time: '09:30 PM', status: 'UPCOMING' }
-        ];
-      case 'ambaji':
-        return [
-          { name: 'Mangala Aarti', time: '07:30 AM', status: 'COMPLETED' },
-          { name: 'Rajbhog Darshan', time: '12:00 PM', status: 'UPCOMING' },
-          { name: 'Sandhya Aarti', time: '07:00 PM', status: 'UPCOMING' },
-          { name: 'Shayan Darshan', time: '09:00 PM', status: 'UPCOMING' }
-        ];
-      default:
-        return [
-          { name: 'Mangala Aarti', time: '06:30 AM', status: 'COMPLETED' },
-          { name: 'Shringar Aarti', time: '09:00 AM', status: 'COMPLETED' },
-          { name: 'Sandhya Maha Aarti', time: '07:30 PM', status: 'NEXT AARTI' },
-          { name: 'Shayan Aarti', time: '08:30 PM', status: 'UPCOMING' }
-        ];
-    }
+    return SITES_DATA[site?.toLowerCase()]?.aartiSchedule || SITES_DATA.dwarka.aartiSchedule;
   };
 
   // Submit Lost Person from Pilgrim view
@@ -493,9 +479,9 @@ const PilgrimPortal = ({
                 <PhoneCall size={22} color="#ef4444" />
               </div>
               <div>
-                <strong style={{ fontSize: '13px', color: '#991b1b' }}>NEED IMMEDIATE ASSISTANCE OR LOST ON TEMPLE PREMISES?</strong>
+                <strong style={{ fontSize: '13px', color: '#991b1b' }}>NEED IMMEDIATE ASSISTANCE OR LOST ON {currentSiteData.shortName.toUpperCase()} PREMISES?</strong>
                 <div style={{ fontSize: '11px', color: '#b91c1c' }}>
-                  Temple Police Control: <strong>112</strong> • Ambulance / First Aid: <strong>108</strong> • Pilgrimage Seva Desk: <strong>02892-234200</strong>
+                  {currentSiteData.emergencyAgencies.police} • {currentSiteData.emergencyAgencies.ambulance} • {currentSiteData.emergencyAgencies.hospital}
                 </div>
               </div>
             </div>
@@ -520,51 +506,45 @@ const PilgrimPortal = ({
               ⏱️ REAL-TIME DARSHAN QUEUE & GATE THROUGHPUT
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 16px 0' }}>
-              Sensor-verified waiting estimates across all entry checkpoints at {getTempleName(selectedSite)}.
+              Sensor-verified waiting estimates across all entry checkpoints at {currentSiteData.name}.
             </p>
 
             {/* Queue Lanes Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-              
-              <div className="card" style={{ padding: '16px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '13px', color: '#065f46' }}>Gate 2 (General East Line)</strong>
-                  <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>FASTEST</span>
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#047857', marginTop: '6px' }}>
-                  ~18 mins
-                </div>
-                <small style={{ fontSize: '11px', color: '#065f46' }}>
-                  Crowd Density: Light (Flow rate: 95 devotees/min)
-                </small>
-              </div>
-
-              <div className="card" style={{ padding: '16px', backgroundColor: '#fefce8', border: '1px solid #fef08a' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '13px', color: '#854d0e' }}>Gate 1 (Main Sanctum Line)</strong>
-                  <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#eab308', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>MODERATE</span>
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#a16207', marginTop: '6px' }}>
-                  ~32 mins
-                </div>
-                <small style={{ fontSize: '11px', color: '#854d0e' }}>
-                  Crowd Density: Medium (Flow rate: 65 devotees/min)
-                </small>
-              </div>
-
-              <div className="card" style={{ padding: '16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '13px', color: '#1e40af' }}>Gate 4 (Senior & E-Pass Lane)</strong>
-                  <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#2563eb', color: '#fff', padding: '2px 8px', borderRadius: '10px' }}>PRIORITY</span>
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', marginTop: '6px' }}>
-                  ~08 mins
-                </div>
-                <small style={{ fontSize: '11px', color: '#1e40af' }}>
-                  Wheelchair Ramp & E-Pass Verification Active
-                </small>
-              </div>
-
+              {currentSiteData.queueLanes.map((lane, idx) => {
+                const isFast = lane.density === 'Light' || lane.density === 'Priority';
+                return (
+                  <div 
+                    key={lane.id || idx} 
+                    className="card hover-lift" 
+                    style={{ 
+                      padding: '16px', 
+                      backgroundColor: isFast ? '#ecfdf5' : lane.density === 'Moderate' ? '#fefce8' : '#fef2f2', 
+                      border: `1px solid ${isFast ? '#a7f3d0' : lane.density === 'Moderate' ? '#fde047' : '#fca5a5'}` 
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{lane.name}</strong>
+                      <span style={{ 
+                        fontSize: '9px', 
+                        fontWeight: '800', 
+                        backgroundColor: isFast ? '#10b981' : lane.density === 'Moderate' ? '#eab308' : '#ef4444', 
+                        color: '#fff', 
+                        padding: '2px 8px', 
+                        borderRadius: '10px' 
+                      }}>
+                        {lane.density.toUpperCase()}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: isFast ? '#047857' : lane.density === 'Moderate' ? '#a16207' : '#b91c1c', marginTop: '6px' }}>
+                      ~{lane.waitMins} mins
+                    </div>
+                    <small style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      Flow Rate: ~{lane.rate} devotees/min • Real Sensor Feed
+                    </small>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -579,14 +559,14 @@ const PilgrimPortal = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
             <div>
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-                📅 14-DAY DEVOTEE CROWD RUSH CALENDAR
+                📅 14-DAY DEVOTEE CROWD RUSH CALENDAR — {currentSiteData.shortName.toUpperCase()}
               </h3>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                 AI-forecasted crowd footfall to help families plan comfortable pilgrimage dates.
               </p>
             </div>
             <span style={{ fontSize: '11px', fontWeight: '700', color: '#059669', backgroundColor: '#ecfdf5', padding: '4px 10px', borderRadius: '20px' }}>
-              🟢 Recommended for Senior Citizens: Tuesdays & Thursdays
+              🟢 Recommended: {currentSiteData.bottomMetrics.peakTime}
             </span>
           </div>
 
@@ -594,7 +574,7 @@ const PilgrimPortal = ({
             {(forecastData.length > 0 ? forecastData : Array.from({ length: 14 }, (_, i) => {
               const d = new Date();
               d.setDate(d.getDate() + i);
-              const count = Math.round(14000 + Math.sin(i * 0.8) * 5000);
+              const count = Math.round(currentSiteData.stats.todayVisitors / 10 + Math.sin(i * 0.8) * 5000);
               return {
                 date: d.toISOString().split('T')[0],
                 point: count,
@@ -602,8 +582,8 @@ const PilgrimPortal = ({
               };
             })).map((day, idx) => {
               const count = day.point || day.predicted_count || 15000;
-              const isPeak = count > 18000;
-              const isMod = count >= 13000 && count <= 18000;
+              const isPeak = count > 35000;
+              const isMod = count >= 20000 && count <= 35000;
               const dateObj = new Date(day.date);
               const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
               const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -651,15 +631,20 @@ const PilgrimPortal = ({
               🗺️ PILGRIMAGE CHECKPOINTS & AMENITIES DIRECTORY
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 16px 0' }}>
-              Physical landmark guide inside {getTempleName(selectedSite)} precinct. Works offline.
+              Physical landmark guide inside {currentSiteData.name} precinct. Works offline.
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
-              {amenitiesList.map((amenity) => (
+              {currentSiteData.amenities.map((amenity) => (
                 <div key={amenity.id} className="card hover-lift" style={{ ...styles.amenityCard, borderLeft: `4px solid ${amenity.color}` }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                     <div style={{ ...styles.amenityIconBox, backgroundColor: amenity.color }}>
-                      {amenity.icon}
+                      {amenity.id === 'water' ? <Droplet size={18} color="#0284c7" /> :
+                       amenity.id === 'shoes' ? <Compass size={18} color="#b45309" /> :
+                       amenity.id === 'medical' ? <Ambulance size={18} color="#ef4444" /> :
+                       amenity.id === 'prasad' ? <Sparkles size={18} color="#059669" /> :
+                       amenity.id === 'wheelchair' ? <HeartHandshake size={18} color="#7c3aed" /> :
+                       <ShieldCheck size={18} color="#2563eb" />}
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -695,7 +680,7 @@ const PilgrimPortal = ({
             <div>
               <span style={{ fontSize: '10px', fontWeight: '800', color: '#ef4444', letterSpacing: '0.8px' }}>FAST-TRACK EMERGENCY REUNION</span>
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-                REPORT MISSING CHILD OR SENIOR CITIZEN
+                REPORT MISSING CHILD OR SENIOR CITIZEN ({currentSiteData.shortName})
               </h3>
             </div>
           </div>
@@ -768,18 +753,15 @@ const PilgrimPortal = ({
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={styles.formGroup}>
-                  <label style={styles.formLabel}>LAST SEEN PILLAR / LOCATION</label>
+                  <label style={styles.formLabel}>LAST SEEN PILLAR / LOCATION ({currentSiteData.shortName})</label>
                   <select 
                     value={lostForm.lastSeenLocation}
                     onChange={(e) => setLostForm({ ...lostForm, lastSeenLocation: e.target.value })}
                     style={styles.formSelect}
                   >
-                    <option value="Main Queue Corridor — Pillar #14">Main Queue Corridor — Pillar #14</option>
-                    <option value="Inner Sanctum Entry (Gate 1)">Inner Sanctum Entry (Gate 1)</option>
-                    <option value="Footwear & Locker Stand B">Footwear & Locker Stand B</option>
-                    <option value="Prasad Counter Hall">Prasad Counter Hall</option>
-                    <option value="North Shaded Holding Bay">North Shaded Holding Bay</option>
-                    <option value="South Car Parking Exit Gate">South Car Parking Exit Gate</option>
+                    {currentSiteData.landmarks.map((landmark, idx) => (
+                      <option key={idx} value={landmark}>{landmark}</option>
+                    ))}
                   </select>
                 </div>
                 <div style={styles.formGroup}>

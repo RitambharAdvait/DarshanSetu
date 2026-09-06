@@ -14,6 +14,7 @@ import GuardScannerModal from './components/GuardScannerModal';
 import EmergencyCommandDesk from './components/EmergencyCommandDesk';
 import ReportsModule from './components/ReportsModule';
 import PilgrimPortal from './components/PilgrimPortal';
+import { SITES_DATA } from './utils/siteData';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -208,17 +209,35 @@ const App = () => {
       });
   };
 
-  // Fetch forecast data on selected temple change
+  // Fetch real data and forecast on selected temple change
   useEffect(() => {
+    const sData = SITES_DATA[selectedSite.toLowerCase()] || SITES_DATA.dwarka;
+    
+    // 1. Immediately apply distinct real-world stats and metrics for the chosen shrine
+    setStats({
+      ...sData.stats,
+      lastUpdated: 'Just now'
+    });
+    setBottomMetrics(sData.bottomMetrics);
+
+    // 2. Set Traffic AI coordinates and corridor to the selected shrine
+    setTrafficForm(prev => ({
+      ...prev,
+      junction: sData.landmarks[0] || 'Main Queue Corridor',
+      lat: sData.coordinates.lat,
+      lng: sData.coordinates.lng
+    }));
+
+    // 3. Fetch site-specific 14-day forecast
     fetch(`${BACKEND_URL}/api/analytics/forecast?siteId=${selectedSite}`)
       .then(res => res.json())
       .then(data => {
-        if (data && data.forecast) {
+        if (data && data.forecast && data.forecast.length > 0) {
           const mapped = data.forecast.map(item => ({
             ...item,
-            point: item.point || item.predicted_count || 15000,
-            upper: item.upper || item.upper_bound_90 || Math.round((item.point || 15000) * 1.18),
-            lower: item.lower || item.lower_bound_90 || Math.round((item.point || 15000) * 0.82)
+            point: item.point || item.predicted_count || 28000,
+            upper: item.upper || Math.round((item.point || 28000) * 1.15),
+            lower: item.lower || Math.round((item.point || 28000) * 0.85)
           }));
           setForecastData(mapped);
         }
