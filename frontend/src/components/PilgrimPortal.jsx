@@ -216,7 +216,7 @@ const PilgrimPortal = ({
   ];
 
   return (
-    <div style={styles.container}>
+    <div key={activeTab} className="animate-fade-up" style={styles.container}>
       
       {/* Top Pilgrim Navigation Tabs */}
       <div style={styles.tabBar} className="card">

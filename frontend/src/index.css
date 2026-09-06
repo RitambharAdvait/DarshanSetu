@@ -295,3 +295,118 @@ body {
   border-color: var(--color-blue) !important;
   cursor: pointer;
 }
+.hover-lift:active {
+  transform: translateY(-1px) scale(0.99) !important;
+}
+
+/* ======================================================== */
+/* ELEGANT UI MICRO-ANIMATIONS (ZERO FEATURE OVERHEAD)      */
+/* ======================================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes radarSweep {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes sosBeacon {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes pinBounce {
+  0% {
+    transform: translateY(-16px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(3px);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Animation Helper Classes */
+.animate-fade-up {
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-scale-in {
+  animation: fadeInScale 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pulsing-dot-green {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: radarSweep 2s infinite ease-out;
+}
+
+.pulsing-dot-red {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  animation: sosBeacon 1.8s infinite ease-out;
+}
+
+/* Custom Marker Pin Animation on Leaflet Maps */
+.custom-temple-pin {
+  animation: pinBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.custom-temple-pin:hover {
+  transform: scale(1.18) !important;
+  z-index: 1000 !important;
+}
+
+/* Button Click Tactile Bounce */
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+button:active {
+  transform: scale(0.97);
+}
