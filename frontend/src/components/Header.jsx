@@ -53,9 +53,9 @@ const Header = ({
           type="button"
           style={{
             ...styles.roleBtn,
-            backgroundColor: userRole === 'pilgrim' ? '#2563eb' : 'transparent',
+            backgroundColor: userRole === 'pilgrim' ? '#ea580c' : 'transparent',
             color: userRole === 'pilgrim' ? '#ffffff' : 'var(--text-secondary)',
-            boxShadow: userRole === 'pilgrim' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
+            boxShadow: userRole === 'pilgrim' ? '0 2px 8px rgba(234, 88, 12, 0.35)' : 'none'
           }}
           onClick={() => {
             setUserRole('pilgrim');
@@ -68,9 +68,9 @@ const Header = ({
           type="button"
           style={{
             ...styles.roleBtn,
-            backgroundColor: userRole === 'admin' ? '#0f172a' : 'transparent',
+            backgroundColor: userRole === 'admin' ? '#1e293b' : 'transparent',
             color: userRole === 'admin' ? '#ffffff' : 'var(--text-secondary)',
-            boxShadow: userRole === 'admin' ? '0 2px 8px rgba(15, 23, 42, 0.35)' : 'none'
+            boxShadow: userRole === 'admin' ? '0 2px 8px rgba(30, 41, 59, 0.35)' : 'none'
           }}
           onClick={() => {
             setUserRole('admin');
@@ -92,7 +92,7 @@ const Header = ({
               setIsLangOpen(false);
             }}
           >
-            <MapPin size={16} color="#2563eb" />
+            <MapPin size={16} color="#d97706" />
             <span style={styles.dropdownLabel}>
               {shrines.find(s => s.id === selectedSite)?.label || 'Dwarka Temple'}
             </span>
