@@ -228,57 +228,54 @@ const PilgrimPortal = ({
       {/* ======================================================== */}
       {activeTab === 'overview' && (
         <>
-          {/* Divine Welcome Banner with Temple Image */}
-          <div className="card" style={styles.heroBanner}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: '280px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                  <span style={styles.holyTag}>🕉️ SACRED PILGRIMAGE PRECINCT • OFFICIAL DEVOTEE SERVICES</span>
-                  <div style={styles.gateStatusPill}>
-                    <span className="pulsing-dot-green"></span>
-                    <span>GATES OPEN • SMOOTH FLOW</span>
-                  </div>
-                </div>
-                <h1 style={styles.templeTitle}>{getTempleName(selectedSite)}</h1>
-                <p style={styles.templeSub}>
-                  Live Darshan Queue Status • Special Puja Passes • Real-Time Pilgrim Safety Network
-                </p>
+          {/* Divine 100% Full Background Temple Banner Tile */}
+          <div 
+            className="card" 
+            style={{
+              ...styles.heroBanner,
+              position: 'relative',
+              backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%), url(${getTempleImage(selectedSite)})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              minHeight: '170px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              padding: '24px 28px',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.25)',
+              border: '1px solid rgba(255, 255, 255, 0.15)'
+            }}
+          >
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                width: 'fit-content',
+                border: '1px solid rgba(255, 255, 255, 0.25)'
+              }}>
+                <MapPin size={13} color="#fde047" />
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+                  {selectedSite.toUpperCase()} DHAM
+                </span>
               </div>
-
-              {/* Temple Picture Frame */}
-              <div style={styles.templeImageFrame}>
-                <img 
-                  src={getTempleImage(selectedSite)} 
-                  alt={getTempleName(selectedSite)}
-                  style={styles.templeImg}
-                  onError={(e) => {
-                    e.currentTarget.src = '/temples/dwarka.jpg';
-                  }}
-                />
-                <div style={styles.templeImgOverlay}>
-                  <MapPin size={12} color="#ffffff" />
-                  <span style={{ fontSize: '10px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
-                    {selectedSite.toUpperCase()} DHAM
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Live Aarti Countdown Banner */}
-            <div style={styles.aartiRibbon}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={styles.aartiIconBox}>
-                  <Sparkles size={18} color="#d97706" />
-                </div>
-                <div>
-                  <strong style={{ fontSize: '12px', color: '#92400e' }}>NEXT SACRED AARTI: Sandhya Maha Aarti</strong>
-                  <div style={{ fontSize: '11px', color: '#b45309' }}>Daily Darshan Closes at 09:30 PM after Shayan Aarti</div>
-                </div>
-              </div>
-              <div style={styles.countdownBox}>
-                <Clock size={14} color="#b45309" />
-                <span>Starts in: <strong>{aartiCountdown}</strong></span>
-              </div>
+              <h1 style={{
+                fontSize: '26px',
+                fontWeight: '900',
+                color: '#ffffff',
+                margin: 0,
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)',
+                letterSpacing: '-0.3px'
+              }}>
+                {getTempleName(selectedSite)}
+              </h1>
             </div>
           </div>
 
