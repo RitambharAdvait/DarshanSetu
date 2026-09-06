@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { SITES_DATA } from '../utils/siteData';
+import TempleGuideMap from './TempleGuideMap';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -605,48 +606,10 @@ const PilgrimPortal = ({
       {/* 4. TEMPLE MAP & AMENITIES TAB                            */}
       {/* ======================================================== */}
       {activeTab === 'amenities' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div className="card" style={{ padding: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-              🗺️ PILGRIMAGE CHECKPOINTS & AMENITIES DIRECTORY
-            </h3>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '4px 0 16px 0' }}>
-              Physical landmark guide inside {currentSiteData.name} precinct. Works offline.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
-              {currentSiteData.amenities.map((amenity) => (
-                <div key={amenity.id} className="card hover-lift" style={{ ...styles.amenityCard, borderLeft: `4px solid ${amenity.color}` }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                    <div style={{ ...styles.amenityIconBox, backgroundColor: amenity.color }}>
-                      {amenity.id === 'water' ? <Droplet size={18} color="#0284c7" /> :
-                       amenity.id === 'shoes' ? <Compass size={18} color="#b45309" /> :
-                       amenity.id === 'medical' ? <Ambulance size={18} color="#ef4444" /> :
-                       amenity.id === 'prasad' ? <Sparkles size={18} color="#059669" /> :
-                       amenity.id === 'wheelchair' ? <HeartHandshake size={18} color="#7c3aed" /> :
-                       <ShieldCheck size={18} color="#2563eb" />}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <h4 style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)' }}>
-                          {amenity.title}
-                        </h4>
-                      </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                        📍 {amenity.location}
-                      </div>
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#059669', backgroundColor: '#ecfdf5', padding: '1px 6px', borderRadius: '6px', display: 'inline-block', marginTop: '4px' }}>
-                        {amenity.tag}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-        </div>
+        <TempleGuideMap 
+          selectedSite={selectedSite} 
+          onOpenSosModal={onOpenSosModal} 
+        />
       )}
 
       {/* ======================================================== */}
