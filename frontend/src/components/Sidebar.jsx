@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,21 +9,44 @@ import {
   PhoneCall, 
   HelpCircle, 
   Info, 
-  LogOut 
+  LogOut,
+  QrCode,
+  Sparkles,
+  Compass,
+  Calendar,
+  ShieldAlert,
+  Clock,
+  HeartHandshake
 } from 'lucide-react';
 
-const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal, onOpenGuardScannerModal }) => {
-  const modules = [
+const Sidebar = ({ 
+  activeModule, 
+  setActiveModule, 
+  userRole = 'admin', 
+  setUserRole, 
+  t, 
+  onOpenTicketModal, 
+  onOpenGuardScannerModal, 
+  onOpenSosModal 
+}) => {
+  // Admin Navigation Modules
+  const adminModules = [
+    { id: 'dashboard', name: 'Command Overview', icon: LayoutDashboard },
     { id: 'live-crowd', name: t.liveCrowd, icon: Users },
     { id: 'forecast', name: t.forecast, icon: TrendingUp },
-    { id: 'traffic', name: t.traffic, icon: Car },
+    { id: 'traffic', name: 'vahanFlow Mobility', icon: Car },
     { id: 'emergency', name: 'Emergency Command', icon: PhoneCall },
+    { id: 'reports', name: 'Reports & Magisterial', icon: FileText },
+    { id: 'analytics', name: t.analytics, icon: BarChart2 },
   ];
 
-  const moreItems = [
-    { id: 'reports', name: t.reports, icon: FileText },
-    { id: 'analytics', name: t.analytics, icon: BarChart2 },
-    { id: 'settings', name: t.settings, icon: Settings },
+  // Pilgrim Navigation Items
+  const pilgrimItems = [
+    { id: 'pilgrim', name: 'Pilgrim Home', icon: Sparkles },
+    { id: 'pilgrim-queue', name: 'Live Queue & Waits', icon: Clock },
+    { id: 'pilgrim-planner', name: '14-Day Rush Forecast', icon: Calendar },
+    { id: 'pilgrim-amenities', name: 'Temple Guide & Map', icon: Compass },
+    { id: 'pilgrim-lost', name: 'Report Missing Member', icon: ShieldAlert },
   ];
 
   return (
@@ -32,101 +54,155 @@ const Sidebar = ({ activeModule, setActiveModule, t, onOpenTicketModal, onOpenGu
       {/* Spacer for Top Header Alignment */}
       <div style={styles.headerSpacer}></div>
 
-      {/* Main Dashboard Button */}
-      <button 
-        style={{
-          ...styles.navItem,
-          ...(activeModule === 'dashboard' ? styles.activeNavItem : {})
-        }}
-        onClick={() => setActiveModule('dashboard')}
-      >
-        <LayoutDashboard size={18} style={activeModule === 'dashboard' ? styles.activeIcon : styles.icon} />
-        <span style={styles.navText}>{t.dashboard}</span>
-      </button>
-
-      {/* Book Ticket Pass Button */}
-      <button 
-        style={{
-          ...styles.navItem,
-          backgroundColor: 'var(--color-blue-light)',
-          color: 'var(--color-blue)',
-          fontWeight: '700',
-          marginTop: '6px'
-        }}
-        onClick={onOpenTicketModal}
-      >
-        <span style={{ marginRight: '10px', fontSize: '16px' }}>🎫</span>
-        <span style={styles.navText}>Book Darshan Ticket</span>
-      </button>
-
-      {/* Security Guard Gate Scanner Button */}
-      <button 
-        style={{
-          ...styles.navItem,
-          backgroundColor: '#ecfdf5',
-          color: '#10b981',
-          fontWeight: '700',
-          marginTop: '4px'
-        }}
-        onClick={onOpenGuardScannerModal}
-      >
-        <span style={{ marginRight: '10px', fontSize: '16px' }}>🛡️</span>
-        <span style={styles.navText}>Guard Gate Scanner</span>
-      </button>
-
-      {/* Modules Section */}
-      <div style={styles.section}>
-        <div style={styles.sectionHeader}>{t.modules}</div>
-        {modules.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeModule === item.id;
-          return (
-            <button
-              key={item.id}
-              style={{
-                ...styles.navItem,
-                ...(isActive ? styles.activeNavItem : {})
-              }}
-              onClick={() => setActiveModule(item.id)}
-            >
-              <Icon size={18} style={isActive ? styles.activeIcon : styles.icon} />
-              <span style={styles.navText}>{item.name}</span>
-            </button>
-          );
-        })}
+      {/* Current Role Badge */}
+      <div style={{
+        padding: '8px 12px',
+        borderRadius: '10px',
+        backgroundColor: userRole === 'pilgrim' ? '#eff6ff' : '#f8fafc',
+        border: `1px solid ${userRole === 'pilgrim' ? '#bfdbfe' : '#cbd5e1'}`,
+        marginBottom: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)' }}>CURRENT VIEW</span>
+          <strong style={{ fontSize: '11px', color: userRole === 'pilgrim' ? '#2563eb' : '#0f172a' }}>
+            {userRole === 'pilgrim' ? '📱 Devotee / Pilgrim' : '🏛️ Temple Admin / Police'}
+          </strong>
+        </div>
+        <button
+          type="button"
+          style={{
+            fontSize: '9px',
+            fontWeight: '700',
+            padding: '3px 6px',
+            borderRadius: '6px',
+            border: 'none',
+            backgroundColor: userRole === 'pilgrim' ? '#2563eb' : '#0f172a',
+            color: '#ffffff',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            const nextRole = userRole === 'pilgrim' ? 'admin' : 'pilgrim';
+            setUserRole(nextRole);
+            setActiveModule(nextRole === 'pilgrim' ? 'pilgrim' : 'dashboard');
+          }}
+        >
+          Switch ⇄
+        </button>
       </div>
 
-      {/* More Section */}
-      <div style={styles.section}>
-        <div style={styles.sectionHeader}>{t.more}</div>
-        {moreItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeModule === item.id;
-          return (
-            <button
-              key={item.id}
-              style={{
-                ...styles.navItem,
-                ...(isActive ? styles.activeNavItem : {})
-              }}
-              onClick={() => setActiveModule(item.id)}
-            >
-              <Icon size={18} style={isActive ? styles.activeIcon : styles.icon} />
-              <span style={styles.navText}>{item.name}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* ======================================================== */}
+      {/* PILGRIM ROLE SIDEBAR                                     */}
+      {/* ======================================================== */}
+      {userRole === 'pilgrim' ? (
+        <>
+          {/* Quick Book Darshan Pass Button */}
+          <button 
+            style={{
+              ...styles.navItem,
+              backgroundColor: '#2563eb',
+              color: '#ffffff',
+              fontWeight: '700',
+              marginBottom: '8px',
+              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
+            }}
+            onClick={onOpenTicketModal}
+          >
+            <QrCode size={18} style={{ marginRight: '10px' }} />
+            <span style={styles.navText}>Book Darshan Pass</span>
+          </button>
 
-      {/* Emergency Card */}
-      <div style={styles.emergencyCard}>
+          <div style={styles.section}>
+            <div style={styles.sectionHeader}>PILGRIM SERVICES</div>
+            {pilgrimItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeModule === item.id;
+              return (
+                <button
+                  key={item.id}
+                  style={{
+                    ...styles.navItem,
+                    ...(isActive ? styles.activeNavItem : {})
+                  }}
+                  onClick={() => setActiveModule(item.id)}
+                >
+                  <Icon size={18} style={isActive ? styles.activeIcon : styles.icon} />
+                  <span style={styles.navText}>{item.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        /* ======================================================== */
+        /* ADMIN ROLE SIDEBAR                                       */
+        /* ======================================================== */
+        <>
+          {/* Book Ticket Pass Button */}
+          <button 
+            style={{
+              ...styles.navItem,
+              backgroundColor: 'var(--color-blue-light)',
+              color: 'var(--color-blue)',
+              fontWeight: '700',
+              marginBottom: '4px'
+            }}
+            onClick={onOpenTicketModal}
+          >
+            <span style={{ marginRight: '10px', fontSize: '16px' }}>🎫</span>
+            <span style={styles.navText}>Book Darshan Ticket</span>
+          </button>
+
+          {/* Security Guard Gate Scanner Button */}
+          <button 
+            style={{
+              ...styles.navItem,
+              backgroundColor: '#ecfdf5',
+              color: '#10b981',
+              fontWeight: '700',
+              marginBottom: '8px'
+            }}
+            onClick={onOpenGuardScannerModal}
+          >
+            <span style={{ marginRight: '10px', fontSize: '16px' }}>🛡️</span>
+            <span style={styles.navText}>Guard Gate Scanner</span>
+          </button>
+
+          {/* Admin Modules Section */}
+          <div style={styles.section}>
+            <div style={styles.sectionHeader}>ADMIN & POLICE COMMAND</div>
+            {adminModules.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeModule === item.id;
+              return (
+                <button
+                  key={item.id}
+                  style={{
+                    ...styles.navItem,
+                    ...(isActive ? styles.activeNavItem : {})
+                  }}
+                  onClick={() => setActiveModule(item.id)}
+                >
+                  <Icon size={18} style={isActive ? styles.activeIcon : styles.icon} />
+                  <span style={styles.navText}>{item.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Emergency Helpline Card */}
+      <div style={styles.emergencyCard} onClick={onOpenSosModal} role="button" tabIndex={0}>
         <div style={styles.emergencyIconContainer}>
           <PhoneCall size={20} color="#ef4444" />
         </div>
         <div style={styles.emergencyInfo}>
-          <div style={styles.emergencyLabel}>{t.emergencyHelpline}</div>
-          <div style={styles.emergencyNumber}>112</div>
-          <div style={styles.emergencySub}>{t.emergencySupport}</div>
+          <div style={styles.emergencyLabel}>24x7 TEMPLE HELPLINE</div>
+          <div style={styles.emergencyNumber}>112 / 108</div>
+          <div style={styles.emergencySub}>Click for 1-Tap SOS</div>
         </div>
       </div>
 

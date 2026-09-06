@@ -2,7 +2,18 @@ import React, { useState } from 'react';
 import { Bell, ChevronDown, Globe, MapPin } from 'lucide-react';
 import Logo from './Logo';
 
-const Header = ({ activeModule, setActiveModule, language, setLanguage, selectedSite, setSelectedSite, t, onOpenSosModal }) => {
+const Header = ({ 
+  activeModule, 
+  setActiveModule, 
+  language, 
+  setLanguage, 
+  selectedSite, 
+  setSelectedSite, 
+  userRole = 'admin', 
+  setUserRole, 
+  t, 
+  onOpenSosModal 
+}) => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isSiteOpen, setIsSiteOpen] = useState(false);
 
@@ -36,23 +47,38 @@ const Header = ({ activeModule, setActiveModule, language, setLanguage, selected
         </div>
       </div>
 
-      {/* Top Menu Tabs */}
-      <div style={styles.tabContainer}>
-        {topTabs.map((tab) => {
-          const isActive = activeModule === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveModule(tab.id)}
-              style={{
-                ...styles.tab,
-                ...(isActive ? styles.activeTab : {})
-              }}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
+      {/* Role Segregation Switcher (Devotee vs Admin) */}
+      <div style={styles.roleSwitcherContainer}>
+        <button
+          type="button"
+          style={{
+            ...styles.roleBtn,
+            backgroundColor: userRole === 'pilgrim' ? '#2563eb' : 'transparent',
+            color: userRole === 'pilgrim' ? '#ffffff' : 'var(--text-secondary)',
+            boxShadow: userRole === 'pilgrim' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
+          }}
+          onClick={() => {
+            setUserRole('pilgrim');
+            setActiveModule('pilgrim');
+          }}
+        >
+          📱 Pilgrim Portal
+        </button>
+        <button
+          type="button"
+          style={{
+            ...styles.roleBtn,
+            backgroundColor: userRole === 'admin' ? '#0f172a' : 'transparent',
+            color: userRole === 'admin' ? '#ffffff' : 'var(--text-secondary)',
+            boxShadow: userRole === 'admin' ? '0 2px 8px rgba(15, 23, 42, 0.35)' : 'none'
+          }}
+          onClick={() => {
+            setUserRole('admin');
+            setActiveModule('dashboard');
+          }}
+        >
+          🏛️ Admin Command Center
+        </button>
       </div>
 
       {/* Right Controls & Info */}
@@ -212,6 +238,27 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     color: 'var(--text-muted)'
+  },
+  roleSwitcherContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: 'var(--bg-item)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '12px',
+    padding: '4px',
+    gap: '4px'
+  },
+  roleBtn: {
+    padding: '6px 14px',
+    borderRadius: '8px',
+    border: 'none',
+    fontSize: '12px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
   },
   tabContainer: {
     display: 'flex',

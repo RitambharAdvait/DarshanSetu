@@ -13,6 +13,7 @@ import SosEmergencyModal from './components/SosEmergencyModal';
 import GuardScannerModal from './components/GuardScannerModal';
 import EmergencyCommandDesk from './components/EmergencyCommandDesk';
 import ReportsModule from './components/ReportsModule';
+import PilgrimPortal from './components/PilgrimPortal';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -41,8 +42,9 @@ const App = () => {
   const [language, setLanguage] = useState('en');
   const t = translations[language] || translations.en;
 
-  // Navigation Module State
-  const [activeModule, setActiveModule] = useState('dashboard');
+  // Role Segregation State ('pilgrim' | 'admin')
+  const [userRole, setUserRole] = useState('pilgrim');
+  const [activeModule, setActiveModule] = useState('pilgrim');
   const [trafficView, setTrafficView] = useState('react');
   
   // Refresh loading state
@@ -382,7 +384,7 @@ const App = () => {
 
   return (
     <div style={styles.appContainer}>
-      {/* Top Fixed Header with Site Selector */}
+      {/* Top Fixed Header with Site Selector & Role Switcher */}
       <Header 
         activeModule={activeModule} 
         setActiveModule={setActiveModule} 
@@ -390,6 +392,8 @@ const App = () => {
         setLanguage={setLanguage} 
         selectedSite={selectedSite}
         setSelectedSite={setSelectedSite}
+        userRole={userRole}
+        setUserRole={setUserRole}
         t={t} 
         onOpenSosModal={() => setIsSosModalOpen(true)}
       />
@@ -400,9 +404,12 @@ const App = () => {
         <Sidebar 
           activeModule={activeModule} 
           setActiveModule={setActiveModule} 
+          userRole={userRole}
+          setUserRole={setUserRole}
           t={t} 
           onOpenTicketModal={() => setIsTicketModalOpen(true)} 
           onOpenGuardScannerModal={() => setIsGuardScannerOpen(true)}
+          onOpenSosModal={() => setIsSosModalOpen(true)}
         />
 
         {/* Scrollable Work Area */}
@@ -411,8 +418,23 @@ const App = () => {
           {/* Centering Wrapper to prevent horizontal stretching on wide screens */}
           <div style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
+          {/* ======================================================== */}
+          {/* 0. PILGRIM / DEVOTEE DEDICATED PORTAL                    */}
+          {/* ======================================================== */}
+          {(userRole === 'pilgrim' || activeModule.startsWith('pilgrim')) && (
+            <PilgrimPortal 
+              selectedSite={selectedSite}
+              setSelectedSite={setSelectedSite}
+              onOpenTicketModal={() => setIsTicketModalOpen(true)}
+              onOpenSosModal={() => setIsSosModalOpen(true)}
+              stats={stats}
+              forecastData={forecastData}
+              t={t}
+            />
+          )}
+
           {/* 1. MAIN OVERVIEW DASHBOARD TAB */}
-          {activeModule === 'dashboard' && (
+          {userRole === 'admin' && activeModule === 'dashboard' && (
             <>
               {/* Situation Summary Grid */}
               <SituationOverview 
