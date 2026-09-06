@@ -7,7 +7,9 @@ import {
   getLostPersons,
   markPersonReunited,
   toggleGreenCorridor,
-  getGreenCorridorStatus
+  getGreenCorridorStatus,
+  setThreatLevel,
+  getThreatLevel
 } from '../controllers/incident.controller';
 
 const router = Router();
@@ -24,5 +26,9 @@ router.post('/lost-person/reunite/:id', markPersonReunited);
 // Feature 2: Emergency Green Corridor Stretcher Lane Routes
 router.post('/green-corridor/toggle', toggleGreenCorridor);
 router.get('/green-corridor/status/:siteId', getGreenCorridorStatus);
+
+// Feature 3: 4-Tier Temple Alert Threat Dial Routes
+router.post('/threat-level', setThreatLevel);
+router.get('/threat-level/:siteId', getThreatLevel);
 
 export default router;

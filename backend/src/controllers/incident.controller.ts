@@ -152,6 +152,90 @@ const templeCorridorsDB: Record<string, CorridorRecord[]> = {
   ]
 };
 
+// ========================================================
+// FEATURE 3: 4-TIER TEMPLE ALERT THREAT DIAL (DEFCON STYLE)
+// ========================================================
+interface ThreatLevelState {
+  siteId: string;
+  level: 'LEVEL_1_GREEN' | 'LEVEL_2_YELLOW' | 'LEVEL_3_ORANGE' | 'LEVEL_4_RED';
+  title: string;
+  description: string;
+  gateSpeedRate: number; // Percentage modifier (100%, 80%, 50%, 0%)
+  marshalsMobilized: number;
+  lastUpdated: string;
+  updatedBy: string;
+}
+
+const threatLevelsDB: Record<string, ThreatLevelState> = {
+  dwarka: {
+    siteId: 'dwarka',
+    level: 'LEVEL_1_GREEN',
+    title: 'LEVEL 1: NORMAL FLOW',
+    description: 'Standard crowd throughput. All turnstiles operating at 100% capacity.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12,
+    lastUpdated: new Date().toISOString(),
+    updatedBy: 'Control Room Officer'
+  },
+  somnath: {
+    siteId: 'somnath',
+    level: 'LEVEL_1_GREEN',
+    title: 'LEVEL 1: NORMAL FLOW',
+    description: 'Standard crowd throughput. All turnstiles operating at 100% capacity.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12,
+    lastUpdated: new Date().toISOString(),
+    updatedBy: 'Control Room Officer'
+  },
+  ambaji: {
+    siteId: 'ambaji',
+    level: 'LEVEL_1_GREEN',
+    title: 'LEVEL 1: NORMAL FLOW',
+    description: 'Standard crowd throughput. All turnstiles operating at 100% capacity.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12,
+    lastUpdated: new Date().toISOString(),
+    updatedBy: 'Control Room Officer'
+  },
+  pavagadh: {
+    siteId: 'pavagadh',
+    level: 'LEVEL_1_GREEN',
+    title: 'LEVEL 1: NORMAL FLOW',
+    description: 'Standard crowd throughput. All turnstiles operating at 100% capacity.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12,
+    lastUpdated: new Date().toISOString(),
+    updatedBy: 'Control Room Officer'
+  }
+};
+
+const THREAT_LEVEL_METADATA = {
+  LEVEL_1_GREEN: {
+    title: 'LEVEL 1: NORMAL FLOW (GREEN)',
+    description: 'Standard throughput (50 devotees/min). All queue holding corridors open.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12
+  },
+  LEVEL_2_YELLOW: {
+    title: 'LEVEL 2: ELEVATED CAUTION (YELLOW)',
+    description: 'Queue density > 3.5 p/m². On-duty marshals deployed to key bottlenecks.',
+    gateSpeedRate: 80,
+    marshalsMobilized: 18
+  },
+  LEVEL_3_ORANGE: {
+    title: 'LEVEL 3: SURGE RISK (ORANGE)',
+    description: 'Entry gates throttled by 50% (25 devotees/min). Queue splitters and holding bays active.',
+    gateSpeedRate: 50,
+    marshalsMobilized: 28
+  },
+  LEVEL_4_RED: {
+    title: 'LEVEL 4: FULL LOCKDOWN / CRUSH EMERGENCY (RED)',
+    description: 'Entry gates locked on HOLD. Emergency Escape Corridors opened. District Collector & NDRF alerted.',
+    gateSpeedRate: 0,
+    marshalsMobilized: 45
+  }
+};
+
 // POST /api/incidents/sos
 export const raiseSOS = async (req: Request, res: Response) => {
   const { siteId, zoneId, type, severity, description, lat, lng } = req.body;
@@ -364,7 +448,6 @@ export const markPersonReunited = async (req: Request, res: Response) => {
 // FEATURE 2: EMERGENCY "GREEN CORRIDOR" CROWD PARTITIONING
 // ========================================================
 
-// POST /api/incidents/green-corridor/toggle
 export const toggleGreenCorridor = async (req: Request, res: Response) => {
   const { siteId, corridorId, reason } = req.body;
 
@@ -376,7 +459,6 @@ export const toggleGreenCorridor = async (req: Request, res: Response) => {
   targetCorridor.activatedAt = targetCorridor.isActive ? new Date().toISOString() : undefined;
   targetCorridor.activatedReason = targetCorridor.isActive ? (reason || 'Medical Stretcher Rapid Evacuation') : undefined;
 
-  // Broadcast Green Corridor Status to all queue screens & marshal terminals
   (req as any).io?.emit('green_corridor_status', {
     siteId: cleanSiteId,
     corridor: targetCorridor
@@ -392,7 +474,6 @@ export const toggleGreenCorridor = async (req: Request, res: Response) => {
   });
 };
 
-// GET /api/incidents/green-corridor/status/:siteId
 export const getGreenCorridorStatus = async (req: Request, res: Response) => {
   const cleanSiteId = (req.params.siteId || 'dwarka').toLowerCase();
   const corridors = templeCorridorsDB[cleanSiteId] || templeCorridorsDB.dwarka;
@@ -402,4 +483,49 @@ export const getGreenCorridorStatus = async (req: Request, res: Response) => {
     anyActive: corridors.some(c => c.isActive),
     corridors
   });
+};
+
+// ========================================================
+// FEATURE 3: 4-TIER TEMPLE ALERT THREAT DIAL (DEFCON STYLE)
+// ========================================================
+
+// POST /api/incidents/threat-level
+export const setThreatLevel = async (req: Request, res: Response) => {
+  const { siteId, level, updatedBy, reason } = req.body;
+
+  if (!level || !THREAT_LEVEL_METADATA[level as keyof typeof THREAT_LEVEL_METADATA]) {
+    return res.status(400).json({ error: 'Valid threat level required (LEVEL_1_GREEN, LEVEL_2_YELLOW, LEVEL_3_ORANGE, LEVEL_4_RED)' });
+  }
+
+  const cleanSiteId = (siteId || 'dwarka').toLowerCase();
+  const meta = THREAT_LEVEL_METADATA[level as keyof typeof THREAT_LEVEL_METADATA];
+
+  const updatedState: ThreatLevelState = {
+    siteId: cleanSiteId,
+    level,
+    title: meta.title,
+    description: meta.description,
+    gateSpeedRate: meta.gateSpeedRate,
+    marshalsMobilized: meta.marshalsMobilized,
+    lastUpdated: new Date().toISOString(),
+    updatedBy: updatedBy || 'Magisterial Control Room'
+  };
+
+  threatLevelsDB[cleanSiteId] = updatedState;
+
+  // Broadcast threat level shift to all connected clients & gate barriers
+  (req as any).io?.emit('threat_level_change', updatedState);
+
+  res.json({
+    success: true,
+    message: `🚨 THREAT LEVEL UPDATED TO ${meta.title}`,
+    state: updatedState
+  });
+};
+
+// GET /api/incidents/threat-level/:siteId
+export const getThreatLevel = async (req: Request, res: Response) => {
+  const cleanSiteId = (req.params.siteId || 'dwarka').toLowerCase();
+  const state = threatLevelsDB[cleanSiteId] || threatLevelsDB.dwarka;
+  res.json({ state });
 };

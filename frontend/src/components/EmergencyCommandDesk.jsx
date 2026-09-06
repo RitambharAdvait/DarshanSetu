@@ -16,14 +16,29 @@ import {
   HeartPulse,
   Radio,
   Ambulance,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  AlertTriangle,
+  Flame,
+  Gauge
 } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
-  // Navigation tabs inside Emergency Command
-  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'green-corridor' | 'lost-found'
+  // ==========================================
+  // FEATURE 3: 4-TIER THREAT LEVEL STATE
+  // ==========================================
+  const [threatState, setThreatState] = useState({
+    level: 'LEVEL_1_GREEN',
+    title: 'LEVEL 1: NORMAL FLOW',
+    description: 'Standard crowd throughput. All turnstiles operating at 100% capacity.',
+    gateSpeedRate: 100,
+    marshalsMobilized: 12,
+    lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    updatedBy: 'Control Room Officer'
+  });
+  const [isUpdatingThreat, setIsUpdatingThreat] = useState(false);
 
   // ==========================================
   // FEATURE 1: LOST PERSON STATE
@@ -79,9 +94,19 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
   const [isTogglingCorridor, setIsTogglingCorridor] = useState(false);
   const [activeCorridorTimer, setActiveCorridorTimer] = useState(0);
 
-  // Fetch Lost Person Records & Green Corridor Status
+  // Fetch All Initial Data
   const fetchData = () => {
     setIsLoadingLost(true);
+
+    // Threat Level
+    fetch(`${BACKEND_URL}/api/incidents/threat-level/${selectedSite}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.state) setThreatState(data.state);
+      })
+      .catch(() => {});
+
+    // Lost Persons
     fetch(`${BACKEND_URL}/api/incidents/lost-persons/${selectedSite}`)
       .then(res => res.json())
       .then(data => {
@@ -90,6 +115,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
       })
       .catch(() => setIsLoadingLost(false));
 
+    // Green Corridors
     fetch(`${BACKEND_URL}/api/incidents/green-corridor/status/${selectedSite}`)
       .then(res => res.json())
       .then(data => {
@@ -102,6 +128,10 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
     fetchData();
 
     if (socket) {
+      socket.on('threat_level_change', (newState) => {
+        if (newState) setThreatState(newState);
+      });
+
       socket.on('lost_person_alert', (newRecord) => {
         setLostRecords(prev => [newRecord, ...prev.filter(r => r.id !== newRecord.id)]);
       });
@@ -132,6 +162,37 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
     return () => clearInterval(interval);
   }, [corridors]);
 
+  // Handle Threat Level Shift
+  const handleSetThreatLevel = (newLevel) => {
+    if (threatState.level === newLevel) return;
+
+    if (newLevel === 'LEVEL_4_RED') {
+      if (!window.confirm('⚠️ CRITICAL ACTION: Activate LEVEL 4 RED LOCKDOWN? This will lock all entry turnstiles and alert District NDRF.')) {
+        return;
+      }
+    }
+
+    setIsUpdatingThreat(true);
+    fetch(`${BACKEND_URL}/api/incidents/threat-level`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteId: selectedSite,
+        level: newLevel,
+        updatedBy: 'Magisterial Control Room'
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsUpdatingThreat(false);
+        if (data && data.state) setThreatState(data.state);
+      })
+      .catch(() => {
+        setIsUpdatingThreat(false);
+        setThreatState(prev => ({ ...prev, level: newLevel }));
+      });
+  };
+
   // Toggle Green Corridor Action
   const handleToggleGreenCorridor = (corridorId, reason) => {
     setIsTogglingCorridor(true);
@@ -153,7 +214,6 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
       })
       .catch(() => {
         setIsTogglingCorridor(false);
-        // Fallback local toggle
         setCorridors(prev => prev.map(c => c.id === corridorId ? { ...c, isActive: !c.isActive } : c));
       });
   };
@@ -220,27 +280,38 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
   const reunitedHistory = lostRecords.filter(r => r.status === 'REUNITED');
   const activeCorridors = corridors.filter(c => c.isActive);
 
-  // Format seconds to mm:ss
   const formatTimer = (seconds) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   };
 
+  // Threat Color Helpers
+  const getThreatColor = (level) => {
+    switch (level) {
+      case 'LEVEL_4_RED': return '#ef4444';
+      case 'LEVEL_3_ORANGE': return '#f97316';
+      case 'LEVEL_2_YELLOW': return '#eab308';
+      default: return '#10b981';
+    }
+  };
+
   return (
     <div style={styles.container}>
       
       {/* Top Header Banner */}
-      <div className="card" style={styles.headerCard}>
+      <div className="card" style={{ ...styles.headerCard, borderLeft: `5px solid ${getThreatColor(threatState.level)}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={styles.sirenIconBox}>
-            <AlertOctagon size={28} color="#ef4444" />
+          <div style={{ ...styles.sirenIconBox, backgroundColor: `${getThreatColor(threatState.level)}15` }}>
+            <AlertOctagon size={28} color={getThreatColor(threatState.level)} />
           </div>
           <div>
-            <div style={styles.headerTag}>STATE DISASTER & POLICE EMERGENCY COMMAND</div>
+            <div style={{ ...styles.headerTag, color: getThreatColor(threatState.level) }}>
+              STATE DISASTER & POLICE EMERGENCY COMMAND • {threatState.title}
+            </div>
             <h2 style={styles.headerTitle}>INCIDENT MANAGEMENT & SOS DISPATCH COMMAND</h2>
             <div style={styles.headerSub}>
-              Site: <strong style={{ color: 'var(--text-primary)', textTransform: 'uppercase' }}>{selectedSite}</strong> • Active Security Marshals: <strong>12 On Duty</strong> • Emergency Stretcher Target: <strong>&lt; 45 Secs</strong>
+              Site: <strong style={{ color: 'var(--text-primary)', textTransform: 'uppercase' }}>{selectedSite}</strong> • Gate Throttle Rate: <strong>{threatState.gateSpeedRate}%</strong> • Marshals Mobilized: <strong>{threatState.marshalsMobilized} Officers</strong>
             </div>
           </div>
         </div>
@@ -261,6 +332,120 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             <RefreshCw size={16} className={isLoadingLost ? 'spin' : ''} />
           </button>
         </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* FEATURE 3: 4-TIER TEMPLE ALERT THREAT DIAL (DEFCON STYLE) */}
+      {/* ======================================================== */}
+      <div className="card" style={styles.threatDialPanel}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Gauge size={20} color="var(--color-blue)" />
+            <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+              TEMPLE ALERT THREAT DIAL (OVERARCHING DEFCON PROTOCOL)
+            </h3>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            Click dial level to shift platform operational state
+          </div>
+        </div>
+
+        {/* The 4 Dial Buttons Grid */}
+        <div style={styles.dialGrid}>
+          
+          {/* Level 1: Green */}
+          <button 
+            type="button"
+            style={{
+              ...styles.dialBtn,
+              borderColor: threatState.level === 'LEVEL_1_GREEN' ? '#10b981' : 'var(--border-color)',
+              backgroundColor: threatState.level === 'LEVEL_1_GREEN' ? '#ecfdf5' : 'var(--bg-item)',
+              boxShadow: threatState.level === 'LEVEL_1_GREEN' ? '0 0 0 2px #10b981' : 'none'
+            }}
+            onClick={() => handleSetThreatLevel('LEVEL_1_GREEN')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '18px' }}>🟢</span>
+              {threatState.level === 'LEVEL_1_GREEN' && <span style={styles.activePillGreen}>ACTIVE</span>}
+            </div>
+            <div style={{ ...styles.dialBtnTitle, color: '#047857' }}>LEVEL 1: NORMAL</div>
+            <div style={styles.dialBtnSub}>100% Gate Flow • Standard Patrols (12 Marshals)</div>
+          </button>
+
+          {/* Level 2: Yellow */}
+          <button 
+            type="button"
+            style={{
+              ...styles.dialBtn,
+              borderColor: threatState.level === 'LEVEL_2_YELLOW' ? '#eab308' : 'var(--border-color)',
+              backgroundColor: threatState.level === 'LEVEL_2_YELLOW' ? '#fefce8' : 'var(--bg-item)',
+              boxShadow: threatState.level === 'LEVEL_2_YELLOW' ? '0 0 0 2px #eab308' : 'none'
+            }}
+            onClick={() => handleSetThreatLevel('LEVEL_2_YELLOW')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '18px' }}>🟡</span>
+              {threatState.level === 'LEVEL_2_YELLOW' && <span style={styles.activePillYellow}>ACTIVE</span>}
+            </div>
+            <div style={{ ...styles.dialBtnTitle, color: '#a16207' }}>LEVEL 2: ELEVATED</div>
+            <div style={styles.dialBtnSub}>80% Gate Flow • Bottleneck Marshals Standby (18)</div>
+          </button>
+
+          {/* Level 3: Orange */}
+          <button 
+            type="button"
+            style={{
+              ...styles.dialBtn,
+              borderColor: threatState.level === 'LEVEL_3_ORANGE' ? '#f97316' : 'var(--border-color)',
+              backgroundColor: threatState.level === 'LEVEL_3_ORANGE' ? '#fff7ed' : 'var(--bg-item)',
+              boxShadow: threatState.level === 'LEVEL_3_ORANGE' ? '0 0 0 2px #f97316' : 'none'
+            }}
+            onClick={() => handleSetThreatLevel('LEVEL_3_ORANGE')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '18px' }}>🟠</span>
+              {threatState.level === 'LEVEL_3_ORANGE' && <span style={styles.activePillOrange}>ACTIVE</span>}
+            </div>
+            <div style={{ ...styles.dialBtnTitle, color: '#c2410c' }}>LEVEL 3: SURGE RISK</div>
+            <div style={styles.dialBtnSub}>50% Gate Throttle • Holding Bays Active (28 Marshals)</div>
+          </button>
+
+          {/* Level 4: Red */}
+          <button 
+            type="button"
+            style={{
+              ...styles.dialBtn,
+              borderColor: threatState.level === 'LEVEL_4_RED' ? '#ef4444' : 'var(--border-color)',
+              backgroundColor: threatState.level === 'LEVEL_4_RED' ? '#fef2f2' : 'var(--bg-item)',
+              boxShadow: threatState.level === 'LEVEL_4_RED' ? '0 0 0 2px #ef4444' : 'none'
+            }}
+            onClick={() => handleSetThreatLevel('LEVEL_4_RED')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '18px' }}>🔴</span>
+              {threatState.level === 'LEVEL_4_RED' && <span style={styles.activePillRed}>LOCKDOWN</span>}
+            </div>
+            <div style={{ ...styles.dialBtnTitle, color: '#b91c1c' }}>LEVEL 4: LOCKDOWN</div>
+            <div style={styles.dialBtnSub}>0% Gates on HOLD • Evacuation Routes Open (45 Marshals)</div>
+          </button>
+
+        </div>
+
+        {/* Active Threat Operational Banner */}
+        <div style={{ ...styles.activeThreatGuideline, borderColor: getThreatColor(threatState.level) }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} color={getThreatColor(threatState.level)} />
+            <div>
+              <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
+                Active Operational Directive: {threatState.title}
+              </strong>
+              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                {threatState.description}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Metric Counters Banner */}
@@ -483,7 +668,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
           )}
         </div>
 
-        {/* Reunited History Accordion / List */}
+        {/* Reunited History List */}
         {reunitedHistory.length > 0 && (
           <div className="card" style={{ padding: '16px', marginTop: '12px' }}>
             <h4 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -661,13 +846,12 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderLeft: '4px solid #ef4444'
+    transition: 'border-color 0.3s ease'
   },
   sirenIconBox: {
     width: '48px',
     height: '48px',
     borderRadius: '12px',
-    backgroundColor: '#fee2e2',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -676,7 +860,6 @@ const styles = {
   headerTag: {
     fontSize: '10px',
     fontWeight: '800',
-    color: '#ef4444',
     letterSpacing: '0.8px'
   },
   headerTitle: {
@@ -713,6 +896,76 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  threatDialPanel: {
+    padding: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  },
+  dialGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '12px'
+  },
+  dialBtn: {
+    padding: '14px',
+    borderRadius: '12px',
+    border: '2px solid',
+    textAlign: 'left',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    transition: 'all 0.2s ease'
+  },
+  dialBtnTitle: {
+    fontSize: '13px',
+    fontWeight: '800',
+    marginTop: '4px'
+  },
+  dialBtnSub: {
+    fontSize: '10px',
+    color: 'var(--text-muted)'
+  },
+  activePillGreen: {
+    fontSize: '9px',
+    fontWeight: '800',
+    backgroundColor: '#10b981',
+    color: '#ffffff',
+    padding: '2px 8px',
+    borderRadius: '10px'
+  },
+  activePillYellow: {
+    fontSize: '9px',
+    fontWeight: '800',
+    backgroundColor: '#eab308',
+    color: '#ffffff',
+    padding: '2px 8px',
+    borderRadius: '10px'
+  },
+  activePillOrange: {
+    fontSize: '9px',
+    fontWeight: '800',
+    backgroundColor: '#f97316',
+    color: '#ffffff',
+    padding: '2px 8px',
+    borderRadius: '10px'
+  },
+  activePillRed: {
+    fontSize: '9px',
+    fontWeight: '800',
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    padding: '2px 8px',
+    borderRadius: '10px'
+  },
+  activeThreatGuideline: {
+    marginTop: '6px',
+    padding: '10px 14px',
+    borderRadius: '10px',
+    backgroundColor: 'var(--bg-item)',
+    borderLeft: '4px solid'
   },
   metricsGrid: {
     display: 'grid',
