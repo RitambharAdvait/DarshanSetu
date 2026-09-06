@@ -280,53 +280,6 @@ const PilgrimPortal = ({
             </div>
           </div>
 
-          {/* Key Devotee Metrics Row */}
-          <div style={styles.devoteeMetricsGrid}>
-            
-            {/* Metric 1: Live Waiting Time */}
-            <div className="card hover-lift" style={{ ...styles.metricCard, borderLeft: '4px solid #10b981' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={styles.metricLabel}>LIVE DARSHAN QUEUE TIME</span>
-                <span style={{ ...styles.pill, backgroundColor: '#ecfdf5', color: '#047857' }}>🟢 LOW RUSH</span>
-              </div>
-              <div style={{ fontSize: '26px', fontWeight: '800', color: '#047857', marginTop: '4px' }}>
-                ~18 - 25 Mins
-              </div>
-              <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                East Corridor Gate 2 is the fastest lane right now.
-              </small>
-            </div>
-
-            {/* Metric 2: Today's Devotees Blessed */}
-            <div className="card hover-lift" style={{ ...styles.metricCard, borderLeft: '4px solid #2563eb' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={styles.metricLabel}>DEVOTEES VISITED TODAY</span>
-                <span style={{ ...styles.pill, backgroundColor: '#eff6ff', color: '#1d4ed8' }}>Live Sensor</span>
-              </div>
-              <div style={{ fontSize: '26px', fontWeight: '800', color: '#1d4ed8', marginTop: '4px' }}>
-                {(stats.todayVisitors || 285642).toLocaleString()}
-              </div>
-              <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                Sanctum Capacity: <strong>{stats.capacityUsed || 42}%</strong> (Comfortable)
-              </small>
-            </div>
-
-            {/* Metric 3: Emergency First Aid Status */}
-            <div className="card hover-lift" style={{ ...styles.metricCard, borderLeft: '4px solid #8b5cf6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={styles.metricLabel}>MEDICAL & SEVA HELPDESKS</span>
-                <span style={{ ...styles.pill, backgroundColor: '#f5f3ff', color: '#7c3aed' }}>Active 24/7</span>
-              </div>
-              <div style={{ fontSize: '26px', fontWeight: '800', color: '#7c3aed', marginTop: '4px' }}>
-                6 Posts Open
-              </div>
-              <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                Free Wheelchairs & RO Water along all lines.
-              </small>
-            </div>
-
-          </div>
-
           {/* Quick Action Tiles Grid (4 Action Cards) */}
           <div style={styles.actionCardsGrid}>
             
