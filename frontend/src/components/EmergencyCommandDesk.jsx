@@ -12,20 +12,25 @@ import {
   CheckCircle2, 
   Lock, 
   RefreshCw,
-  Eye
+  Activity,
+  HeartPulse,
+  Radio,
+  Ambulance,
+  ArrowRight
 } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
-  const [activeSubTab, setActiveSubTab] = useState('lost-found'); // 'lost-found' | 'live-incidents'
-  
-  // Lost & Found State
+  // Navigation tabs inside Emergency Command
+  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'green-corridor' | 'lost-found'
+
+  // ==========================================
+  // FEATURE 1: LOST PERSON STATE
+  // ==========================================
   const [lostRecords, setLostRecords] = useState([]);
   const [isLoadingLost, setIsLoadingLost] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  
-  // Form State for reporting lost child / elder
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -39,26 +44,63 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch Lost Person Records
-  const fetchLostPersons = () => {
+  // ==========================================
+  // FEATURE 2: GREEN CORRIDOR STATE
+  // ==========================================
+  const [corridors, setCorridors] = useState([
+    {
+      id: 'CORRIDOR_B',
+      name: 'Corridor B (West Parikrama Stretcher Lane)',
+      zone: 'Sector 2 - West Outer Ring',
+      widthMeters: 2.4,
+      isActive: false,
+      marshalsAssigned: 4,
+      targetHospital: 'Dwarka Civil Hospital & Trauma Post 1'
+    },
+    {
+      id: 'CORRIDOR_A',
+      name: 'Corridor A (Main Queue Barrier Bypass)',
+      zone: 'Sector 1 - North Canopy',
+      widthMeters: 2.0,
+      isActive: false,
+      marshalsAssigned: 3,
+      targetHospital: 'On-Site Medical Camp Alpha'
+    },
+    {
+      id: 'CORRIDOR_C',
+      name: 'Corridor C (Inner Sanctum Emergency Exit)',
+      zone: 'Garbhagriha South Corridor',
+      widthMeters: 3.0,
+      isActive: false,
+      marshalsAssigned: 6,
+      targetHospital: 'Emergency Cardiac ICU Mobile Unit'
+    }
+  ]);
+  const [isTogglingCorridor, setIsTogglingCorridor] = useState(false);
+  const [activeCorridorTimer, setActiveCorridorTimer] = useState(0);
+
+  // Fetch Lost Person Records & Green Corridor Status
+  const fetchData = () => {
     setIsLoadingLost(true);
     fetch(`${BACKEND_URL}/api/incidents/lost-persons/${selectedSite}`)
       .then(res => res.json())
       .then(data => {
         setIsLoadingLost(false);
-        if (data && data.records) {
-          setLostRecords(data.records);
-        }
+        if (data && data.records) setLostRecords(data.records);
       })
-      .catch(() => {
-        setIsLoadingLost(false);
-      });
+      .catch(() => setIsLoadingLost(false));
+
+    fetch(`${BACKEND_URL}/api/incidents/green-corridor/status/${selectedSite}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.corridors) setCorridors(data.corridors);
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
-    fetchLostPersons();
+    fetchData();
 
-    // Socket.IO real-time listener for new missing person alerts
     if (socket) {
       socket.on('lost_person_alert', (newRecord) => {
         setLostRecords(prev => [newRecord, ...prev.filter(r => r.id !== newRecord.id)]);
@@ -67,8 +109,54 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
       socket.on('lost_person_reunited', (updatedRecord) => {
         setLostRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
       });
+
+      socket.on('green_corridor_status', (data) => {
+        if (data && data.corridor) {
+          setCorridors(prev => prev.map(c => c.id === data.corridor.id ? data.corridor : c));
+        }
+      });
     }
   }, [selectedSite, socket]);
+
+  // Stopwatch for active green corridor
+  useEffect(() => {
+    const isAnyActive = corridors.some(c => c.isActive);
+    let interval = null;
+    if (isAnyActive) {
+      interval = setInterval(() => {
+        setActiveCorridorTimer(prev => prev + 1);
+      }, 1000);
+    } else {
+      setActiveCorridorTimer(0);
+    }
+    return () => clearInterval(interval);
+  }, [corridors]);
+
+  // Toggle Green Corridor Action
+  const handleToggleGreenCorridor = (corridorId, reason) => {
+    setIsTogglingCorridor(true);
+    fetch(`${BACKEND_URL}/api/incidents/green-corridor/toggle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        siteId: selectedSite,
+        corridorId,
+        reason: reason || 'Rapid Stretcher Medical Evacuation'
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsTogglingCorridor(false);
+        if (data && data.corridor) {
+          setCorridors(prev => prev.map(c => c.id === data.corridor.id ? data.corridor : c));
+        }
+      })
+      .catch(() => {
+        setIsTogglingCorridor(false);
+        // Fallback local toggle
+        setCorridors(prev => prev.map(c => c.id === corridorId ? { ...c, isActive: !c.isActive } : c));
+      });
+  };
 
   // Submit Lost Person Report
   const handleReportSubmit = (e) => {
@@ -101,7 +189,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
           guardianName: '',
           notes: ''
         });
-        fetchLostPersons();
+        fetchData();
         alert(`🚨 ALERT BROADCASTED: ${data.message || 'Perimeter gates locked for screening'}`);
       })
       .catch(() => {
@@ -121,7 +209,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
     })
       .then(res => res.json())
       .then(() => {
-        fetchLostPersons();
+        fetchData();
       })
       .catch(() => {
         setLostRecords(prev => prev.map(r => r.id === id ? { ...r, status: 'REUNITED', reunitedAt: new Date().toISOString() } : r));
@@ -130,6 +218,14 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
 
   const activeSearches = lostRecords.filter(r => r.status === 'ACTIVE_SEARCH');
   const reunitedHistory = lostRecords.filter(r => r.status === 'REUNITED');
+  const activeCorridors = corridors.filter(c => c.isActive);
+
+  // Format seconds to mm:ss
+  const formatTimer = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
 
   return (
     <div style={styles.container}>
@@ -144,7 +240,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
             <div style={styles.headerTag}>STATE DISASTER & POLICE EMERGENCY COMMAND</div>
             <h2 style={styles.headerTitle}>INCIDENT MANAGEMENT & SOS DISPATCH COMMAND</h2>
             <div style={styles.headerSub}>
-              Site: <strong style={{ color: 'var(--text-primary)', textTransform: 'uppercase' }}>{selectedSite}</strong> • Active Security Marshals: <strong>12 On Duty</strong> • Emergency Response Target: <strong>&lt; 90 Secs</strong>
+              Site: <strong style={{ color: 'var(--text-primary)', textTransform: 'uppercase' }}>{selectedSite}</strong> • Active Security Marshals: <strong>12 On Duty</strong> • Emergency Stretcher Target: <strong>&lt; 45 Secs</strong>
             </div>
           </div>
         </div>
@@ -159,7 +255,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
           </button>
           <button 
             style={styles.refreshBtn}
-            onClick={fetchLostPersons}
+            onClick={fetchData}
             title="Refresh feed"
           >
             <RefreshCw size={16} className={isLoadingLost ? 'spin' : ''} />
@@ -169,11 +265,29 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
 
       {/* Metric Counters Banner */}
       <div style={styles.metricsGrid}>
-        <div className="card" style={styles.metricCard}>
+        
+        {/* Metric 1: Green Corridor Status */}
+        <div className="card" style={{ ...styles.metricCard, borderLeft: activeCorridors.length > 0 ? '4px solid #10b981' : '1px solid var(--border-color)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={styles.metricLabel}>STRETCHER GREEN CORRIDOR</span>
+            <span style={{ ...styles.badge, backgroundColor: activeCorridors.length > 0 ? '#ecfdf5' : '#f1f5f9', color: activeCorridors.length > 0 ? '#10b981' : '#64748b' }}>
+              {activeCorridors.length > 0 ? 'ACTIVE (TRANSIT)' : 'STANDBY'}
+            </span>
+          </div>
+          <div style={{ ...styles.metricVal, color: activeCorridors.length > 0 ? '#10b981' : 'var(--text-primary)' }}>
+            {activeCorridors.length > 0 ? formatTimer(activeCorridorTimer) : 'READY'}
+          </div>
+          <small style={styles.metricSub}>
+            {activeCorridors.length > 0 ? `Active: ${activeCorridors[0].name}` : 'Corridor B Partition Ready'}
+          </small>
+        </div>
+
+        {/* Metric 2: Active Missing Searches */}
+        <div className="card" style={{ ...styles.metricCard, borderLeft: activeSearches.length > 0 ? '4px solid #f97316' : '1px solid var(--border-color)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={styles.metricLabel}>ACTIVE MISSING SEARCHES</span>
             <span style={{ ...styles.badge, backgroundColor: activeSearches.length > 0 ? '#fef2f2' : '#ecfdf5', color: activeSearches.length > 0 ? '#ef4444' : '#10b981' }}>
-              {activeSearches.length > 0 ? 'GATE LOCKDOWN ACTIVE' : 'ALL CLEAR'}
+              {activeSearches.length > 0 ? 'GATE LOCKDOWN' : 'ALL CLEAR'}
             </span>
           </div>
           <div style={{ ...styles.metricVal, color: activeSearches.length > 0 ? '#ef4444' : 'var(--text-primary)' }}>
@@ -182,6 +296,7 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
           <small style={styles.metricSub}>Broadcasted to All 4 Perimeter Exit Screens</small>
         </div>
 
+        {/* Metric 3: Reunited Today */}
         <div className="card" style={styles.metricCard}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={styles.metricLabel}>REUNITED TODAY</span>
@@ -193,19 +308,94 @@ const EmergencyCommandDesk = ({ selectedSite, socket, t }) => {
           <small style={styles.metricSub}>Average Reunion Time: ~14.2 Mins</small>
         </div>
 
-        <div className="card" style={styles.metricCard}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={styles.metricLabel}>EXIT GATES SCREENING</span>
-            <span style={{ ...styles.badge, backgroundColor: '#eff6ff', color: '#2563eb' }}>4/4 Gates Live</span>
-          </div>
-          <div style={{ ...styles.metricVal, color: '#2563eb' }}>
-            100%
-          </div>
-          <small style={styles.metricSub}>Exit Turnstiles Alert Status: ARMED</small>
-        </div>
       </div>
 
+      {/* ======================================================== */}
+      {/* FEATURE 2: EMERGENCY "GREEN CORRIDOR" CROWD PARTITIONING */}
+      {/* ======================================================== */}
+      <div className="card" style={styles.greenCorridorPanel}>
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ ...styles.featureIconBox, backgroundColor: activeCorridors.length > 0 ? '#ecfdf5' : '#f0fdf4' }}>
+              <HeartPulse size={22} color={activeCorridors.length > 0 ? '#10b981' : '#059669'} />
+            </div>
+            <div>
+              <span style={styles.featureSubTag}>RAPID MEDICAL RESPONSE PROTOCOL</span>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                EMERGENCY "GREEN CORRIDOR" CROWD PARTITIONING
+              </h3>
+            </div>
+          </div>
+          
+          {activeCorridors.length > 0 && (
+            <div style={styles.liveTransitBadge}>
+              <span className="pulsing-dot-green"></span>
+              <span>LIVE STRETCHER TRANSIT: {formatTimer(activeCorridorTimer)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Corridor Lanes List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '12px' }}>
+          {corridors.map((corridor) => (
+            <div 
+              key={corridor.id} 
+              style={{
+                ...styles.corridorRow,
+                backgroundColor: corridor.isActive ? '#ecfdf5' : 'var(--bg-item)',
+                borderColor: corridor.isActive ? '#10b981' : 'var(--border-color)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ ...styles.corridorPill, backgroundColor: corridor.isActive ? '#10b981' : '#cbd5e1', color: corridor.isActive ? '#ffffff' : '#334155' }}>
+                  {corridor.id.replace('_', ' ')}
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                    {corridor.name}
+                  </h4>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    Zone: <strong>{corridor.zone}</strong> • Lane Clearance Width: <strong>{corridor.widthMeters}m</strong> • Assigned Marshals: <strong>{corridor.marshalsAssigned} Officers</strong>
+                  </div>
+                  {corridor.isActive && (
+                    <div style={{ fontSize: '11px', color: '#047857', fontWeight: '700', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Radio size={12} color="#10b981" />
+                      Digital Queue Screens Overridden: <em>"Corridor B converted to Medical Lane — Devotees Please Yield Space"</em>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                disabled={isTogglingCorridor}
+                style={{
+                  ...styles.corridorActionBtn,
+                  backgroundColor: corridor.isActive ? '#ef4444' : '#10b981',
+                  boxShadow: corridor.isActive ? '0 2px 8px rgba(239, 68, 68, 0.3)' : '0 2px 8px rgba(16, 185, 129, 0.3)'
+                }}
+                onClick={() => handleToggleGreenCorridor(corridor.id, 'Medical Emergency Stretcher Rapid Transit')}
+              >
+                {corridor.isActive ? (
+                  <>
+                    <CheckCircle2 size={14} /> Deactivate & Re-Open Queue Lane
+                  </>
+                ) : (
+                  <>
+                    <Ambulance size={14} /> 1-Click Activate Stretcher Green Lane
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+
+      </div>
+
+      {/* ========================================== */}
       {/* FEATURE 1: LOST CHILD & ELDER REUNION DESK */}
+      {/* ========================================== */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         
         {/* Section Header */}
@@ -542,7 +732,7 @@ const styles = {
     letterSpacing: '0.5px'
   },
   metricVal: {
-    fontSize: '26px',
+    fontSize: '24px',
     fontWeight: '800',
     marginTop: '2px'
   },
@@ -555,6 +745,68 @@ const styles = {
     fontWeight: '800',
     padding: '2px 8px',
     borderRadius: '10px'
+  },
+  greenCorridorPanel: {
+    padding: '18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    borderLeft: '4px solid #10b981'
+  },
+  featureIconBox: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  featureSubTag: {
+    fontSize: '9px',
+    fontWeight: '800',
+    color: '#059669',
+    letterSpacing: '0.8px',
+    textTransform: 'uppercase'
+  },
+  liveTransitBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    backgroundColor: '#ecfdf5',
+    color: '#047857',
+    border: '1px solid #a7f3d0',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '11px',
+    fontWeight: '800'
+  },
+  corridorRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '14px 16px',
+    borderRadius: '10px',
+    border: '1px solid',
+    transition: 'all 0.3s ease'
+  },
+  corridorPill: {
+    fontSize: '11px',
+    fontWeight: '800',
+    padding: '4px 10px',
+    borderRadius: '6px'
+  },
+  corridorActionBtn: {
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: 'none',
+    color: '#ffffff',
+    fontSize: '12px',
+    fontWeight: '700',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    transition: 'all 0.2s ease'
   },
   personCardActive: {
     padding: '18px',

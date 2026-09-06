@@ -5,7 +5,7 @@ import { sendEmergencyAlert } from '../services/notification.service';
 
 const prisma = new PrismaClient();
 
-// In-Memory Store for Lost & Found Child / Elder Reunion Desk (with seed demo records)
+// In-Memory Store for Lost & Found Child / Elder Reunion Desk
 interface LostPersonRecord {
   id: string;
   siteId: string;
@@ -72,6 +72,86 @@ let lostPersonsDB: LostPersonRecord[] = [
   }
 ];
 
+// ========================================================
+// FEATURE 2: EMERGENCY "GREEN CORRIDOR" CROWD PARTITIONING
+// ========================================================
+interface CorridorRecord {
+  id: string;
+  name: string;
+  zone: string;
+  widthMeters: number;
+  isActive: boolean;
+  activatedAt?: string;
+  activatedReason?: string;
+  marshalsAssigned: number;
+  targetHospital: string;
+}
+
+const templeCorridorsDB: Record<string, CorridorRecord[]> = {
+  dwarka: [
+    {
+      id: 'CORRIDOR_B',
+      name: 'Corridor B (West Parikrama Stretcher Lane)',
+      zone: 'Sector 2 - West Outer Ring',
+      widthMeters: 2.4,
+      isActive: false,
+      marshalsAssigned: 4,
+      targetHospital: 'Dwarka Civil Hospital & Trauma Post 1'
+    },
+    {
+      id: 'CORRIDOR_A',
+      name: 'Corridor A (Main Queue Barrier Bypass)',
+      zone: 'Sector 1 - North Canopy',
+      widthMeters: 2.0,
+      isActive: false,
+      marshalsAssigned: 3,
+      targetHospital: 'On-Site Medical Camp Alpha'
+    },
+    {
+      id: 'CORRIDOR_C',
+      name: 'Corridor C (Inner Sanctum Emergency Exit)',
+      zone: 'Garbhagriha South Corridor',
+      widthMeters: 3.0,
+      isActive: false,
+      marshalsAssigned: 6,
+      targetHospital: 'Emergency Cardiac ICU Mobile Unit'
+    }
+  ],
+  somnath: [
+    {
+      id: 'CORRIDOR_B',
+      name: 'Corridor B (Sea-facing Stretcher Pathway)',
+      zone: 'Somnath South Perimeter',
+      widthMeters: 2.8,
+      isActive: false,
+      marshalsAssigned: 4,
+      targetHospital: 'Somnath Trust Hospital'
+    }
+  ],
+  ambaji: [
+    {
+      id: 'CORRIDOR_B',
+      name: 'Corridor B (Gabbar Foothill Evacuation Lane)',
+      zone: 'North Ramp Area',
+      widthMeters: 2.5,
+      isActive: false,
+      marshalsAssigned: 4,
+      targetHospital: 'Ambaji Cottage Hospital'
+    }
+  ],
+  pavagadh: [
+    {
+      id: 'CORRIDOR_B',
+      name: 'Corridor B (Ropeway Base Stretcher Lane)',
+      zone: 'Manchi Plateau',
+      widthMeters: 2.2,
+      isActive: false,
+      marshalsAssigned: 4,
+      targetHospital: 'Halol Referral Hospital'
+    }
+  ]
+};
+
 // POST /api/incidents/sos
 export const raiseSOS = async (req: Request, res: Response) => {
   const { siteId, zoneId, type, severity, description, lat, lng } = req.body;
@@ -85,7 +165,7 @@ export const raiseSOS = async (req: Request, res: Response) => {
       data: {
         siteId,
         zoneId,
-        type, // STAMPEDE_PRECURSOR, MEDICAL_FALL, SOS_MANUAL
+        type,
         severity: severity || 'WARNING',
         description,
         lat,
@@ -93,10 +173,8 @@ export const raiseSOS = async (req: Request, res: Response) => {
       }
     });
 
-    // Broadcast new incident to all active dashboards
     (req as any).io?.emit('new_incident', incident);
 
-    // If incident is CRITICAL, dispatch emergency SMS alerts to guards
     if (incident.severity === 'CRITICAL') {
       sendEmergencyAlert(incident);
     }
@@ -117,7 +195,6 @@ export const getRecommendation = async (req: Request, res: Response) => {
     const incident = await prisma.incident.findUnique({ where: { id } });
     if (!incident) return res.status(404).json({ error: 'Incident not found' });
 
-    // Call Python recommender
     const recommendations = await getIncidentRecommendations({
       lat: incident.lat || 12.9716,
       lng: incident.lng || 77.5946,
@@ -125,7 +202,6 @@ export const getRecommendation = async (req: Request, res: Response) => {
       severity: incident.severity,
     });
 
-    // Update database row
     const updatedIncident = await prisma.incident.update({
       where: { id },
       data: {
@@ -155,7 +231,6 @@ export const submitFeedback = async (req: Request, res: Response) => {
     const incident = await prisma.incident.findUnique({ where: { id } });
     if (!incident) return res.status(404).json({ error: 'Incident not found' });
 
-    // Determine if operator overrode suggested values
     const overridden = 
       (actualMarshals !== undefined && actualMarshals !== incident.suggestedMarshals) ||
       (actualBarricades !== undefined && actualBarricades !== incident.suggestedBarricades) ||
@@ -169,12 +244,10 @@ export const submitFeedback = async (req: Request, res: Response) => {
       },
     });
 
-    // Check count of resolved incidents with feedback
     const feedbackCount = await prisma.incident.count({
       where: { actualDuration: { not: null } }
     });
 
-    // Trigger retraining loop in background if count is a multiple of 5
     if (feedbackCount > 0 && feedbackCount % 5 === 0) {
       console.log(`🔄 Triggering automated ML retraining (Feedback count: ${feedbackCount})...`);
 
@@ -208,7 +281,6 @@ export const submitFeedback = async (req: Request, res: Response) => {
 // FEATURE 1: LOST CHILD & ELDER REUNION DESK
 // ==========================================
 
-// POST /api/incidents/lost-person
 export const reportLostPerson = async (req: Request, res: Response) => {
   const { 
     siteId, 
@@ -244,8 +316,6 @@ export const reportLostPerson = async (req: Request, res: Response) => {
   };
 
   lostPersonsDB.unshift(newRecord);
-
-  // Broadcast real-time alert to all connected Gate Monitors & Dashboard
   (req as any).io?.emit('lost_person_alert', newRecord);
 
   res.status(201).json({
@@ -255,7 +325,6 @@ export const reportLostPerson = async (req: Request, res: Response) => {
   });
 };
 
-// GET /api/incidents/lost-persons/:siteId
 export const getLostPersons = async (req: Request, res: Response) => {
   const siteId = (req.params.siteId || 'dwarka').toLowerCase();
   const records = lostPersonsDB.filter(p => p.siteId === siteId || siteId === 'all');
@@ -267,7 +336,6 @@ export const getLostPersons = async (req: Request, res: Response) => {
   });
 };
 
-// POST /api/incidents/lost-person/reunite/:id
 export const markPersonReunited = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { resolutionNotes } = req.body;
@@ -289,5 +357,49 @@ export const markPersonReunited = async (req: Request, res: Response) => {
     success: true,
     message: `🟢 REUNION CONFIRMED: ${record.name} has been safely reunited!`,
     record
+  });
+};
+
+// ========================================================
+// FEATURE 2: EMERGENCY "GREEN CORRIDOR" CROWD PARTITIONING
+// ========================================================
+
+// POST /api/incidents/green-corridor/toggle
+export const toggleGreenCorridor = async (req: Request, res: Response) => {
+  const { siteId, corridorId, reason } = req.body;
+
+  const cleanSiteId = (siteId || 'dwarka').toLowerCase();
+  const siteCorridors = templeCorridorsDB[cleanSiteId] || templeCorridorsDB.dwarka;
+  const targetCorridor = siteCorridors.find(c => c.id === corridorId) || siteCorridors[0];
+
+  targetCorridor.isActive = !targetCorridor.isActive;
+  targetCorridor.activatedAt = targetCorridor.isActive ? new Date().toISOString() : undefined;
+  targetCorridor.activatedReason = targetCorridor.isActive ? (reason || 'Medical Stretcher Rapid Evacuation') : undefined;
+
+  // Broadcast Green Corridor Status to all queue screens & marshal terminals
+  (req as any).io?.emit('green_corridor_status', {
+    siteId: cleanSiteId,
+    corridor: targetCorridor
+  });
+
+  res.json({
+    success: true,
+    isActive: targetCorridor.isActive,
+    message: targetCorridor.isActive
+      ? `🟢 EMERGENCY GREEN CORRIDOR ACTIVATED: ${targetCorridor.name} cleared for Paramedics & Stretcher Team!`
+      : `⚪ Green Corridor deactivated. ${targetCorridor.name} restored to standard queue flow.`,
+    corridor: targetCorridor
+  });
+};
+
+// GET /api/incidents/green-corridor/status/:siteId
+export const getGreenCorridorStatus = async (req: Request, res: Response) => {
+  const cleanSiteId = (req.params.siteId || 'dwarka').toLowerCase();
+  const corridors = templeCorridorsDB[cleanSiteId] || templeCorridorsDB.dwarka;
+
+  res.json({
+    siteId: cleanSiteId,
+    anyActive: corridors.some(c => c.isActive),
+    corridors
   });
 };
