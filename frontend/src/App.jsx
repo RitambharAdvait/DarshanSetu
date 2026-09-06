@@ -12,6 +12,7 @@ import TicketBookingModal from './components/TicketBookingModal';
 import SosEmergencyModal from './components/SosEmergencyModal';
 import GuardScannerModal from './components/GuardScannerModal';
 import EmergencyCommandDesk from './components/EmergencyCommandDesk';
+import ReportsModule from './components/ReportsModule';
 import { translations } from './utils/translations';
 import { Sun, Moon } from 'lucide-react';
 
@@ -737,61 +738,14 @@ const App = () => {
             />
           )}
 
-          {/* 5. INCIDENT REPORTS MODULE */}
+          {/* 5. INCIDENT REPORTS & MAGISTERIAL AUDIT MODULE */}
           {activeModule === 'reports' && (
-            <div style={styles.trafficPanel} className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)' }}>INCIDENT AUDIT LOGS</h3>
-                <button 
-                  style={styles.backBtn} 
-                  onClick={() => {
-                    const csvContent = "data:text/csv;charset=utf-8,ID,Type,Location,Severity,Time\n" + 
-                      alerts.map(a => `"${a.id}","${a.title}","${a.location}","${a.type}","${a.time}"`).join("\n");
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", `DarshanSetu_Incident_Report_${new Date().toISOString().split('T')[0]}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                >
-                  Export CSV Logs
-                </button>
-              </div>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-main)', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b', fontSize: '11px', fontWeight: '700' }}>
-                    <th style={{ padding: '12px' }}>INCIDENT ID</th>
-                    <th style={{ padding: '12px' }}>EVENT TYPE</th>
-                    <th style={{ padding: '12px' }}>SEVERITY</th>
-                    <th style={{ padding: '12px' }}>LOCATION ZONE</th>
-                    <th style={{ padding: '12px' }}>RECORDED TIME</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {alerts.length > 0 ? (
-                    alerts.map((item) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px', fontFamily: 'monospace', color: '#64748b' }}>{item.id.substring(0, 8)}...</td>
-                        <td style={{ padding: '12px', fontWeight: '700', color: '#334155' }}>{item.title}</td>
-                        <td style={{ padding: '12px', fontWeight: '700', color: item.type === 'critical' ? '#ef4444' : '#f59e0b' }}>
-                          {item.type.toUpperCase()}
-                        </td>
-                        <td style={{ padding: '12px' }}>{item.location}</td>
-                        <td style={{ padding: '12px', color: '#64748b' }}>{item.time}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-                        No incident entries logged in PostgreSQL.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ReportsModule 
+              selectedSite={selectedSite} 
+              alerts={alerts} 
+              socket={socket} 
+              t={t} 
+            />
           )}
 
           {/* 6. ADVANCED ANALYTICS MODULE */}
