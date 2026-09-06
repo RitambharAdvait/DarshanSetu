@@ -666,7 +666,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
         </div>
 
         {/* Checkpoints Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+        <div key={selectedFilter} className="stagger-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
           {filteredCheckpoints.map((cp) => (
             <div 
               key={cp.id} 

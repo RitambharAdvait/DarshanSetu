@@ -314,7 +314,7 @@ const PilgrimPortal = ({
           </div>
 
           {/* Quick Action Tiles Grid (4 Action Cards) */}
-          <div style={styles.actionCardsGrid}>
+          <div className="stagger-grid" style={styles.actionCardsGrid}>
             
             {/* Action 1: Book Darshan Pass */}
             <div className="card hover-lift" style={styles.actionCard} onClick={onOpenTicketModal}>
@@ -495,13 +495,14 @@ const PilgrimPortal = ({
             </p>
 
             {/* Queue Lanes Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+            <div className="stagger-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
               {currentSiteData.queueLanes.map((lane, idx) => {
                 const isFast = lane.density === 'Light' || lane.density === 'Priority';
+                const glowClass = isFast ? 'telemetry-card-light' : lane.density === 'Moderate' ? 'telemetry-card-mod' : 'telemetry-card-high';
                 return (
                   <div 
                     key={lane.id || idx} 
-                    className="card hover-lift" 
+                    className={`card hover-lift ${glowClass}`} 
                     style={{ 
                       padding: '16px', 
                       backgroundColor: isFast ? '#ecfdf5' : lane.density === 'Moderate' ? '#fefce8' : '#fef2f2', 
@@ -555,7 +556,7 @@ const PilgrimPortal = ({
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
+          <div className="stagger-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
             {(forecastData.length > 0 ? forecastData : Array.from({ length: 14 }, (_, i) => {
               const d = new Date();
               d.setDate(d.getDate() + i);
