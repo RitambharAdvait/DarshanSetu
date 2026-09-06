@@ -201,14 +201,10 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
         tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
         tileAttribution = 'Imagery &copy; Google Satellite & Hybrid Ground View';
         maxNativeZoom = 20;
-      } else if (mapLayer === 'street') {
+      } else {
         tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png';
         tileAttribution = 'Map data &copy; OpenStreetMap contributors';
         maxNativeZoom = 18;
-      } else if (mapLayer === 'esri') {
-        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        tileAttribution = 'Tiles &copy; Esri &mdash; World Imagery';
-        maxNativeZoom = 17;
       }
 
       L.tileLayer(tileUrl, {
@@ -402,7 +398,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
                 cursor: 'pointer'
               }}
             >
-              🛰️ Google Satellite HD
+              🛰️ Satellite HD
             </button>
             <button
               onClick={() => setMapLayer('street')}
@@ -417,22 +413,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
                 cursor: 'pointer'
               }}
             >
-              🗺️ Detailed Street
-            </button>
-            <button
-              onClick={() => setMapLayer('esri')}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: mapLayer === 'esri' ? '#2563eb' : 'transparent',
-                color: '#ffffff',
-                fontSize: '11px',
-                fontWeight: '700',
-                cursor: 'pointer'
-              }}
-            >
-              ⛰️ Esri Satellite
+              🗺️ Detailed Street Map
             </button>
             <a
               href={config.gmapsUrl}
