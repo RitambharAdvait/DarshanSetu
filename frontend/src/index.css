@@ -409,4 +409,28 @@ button {
 }
 button:active {
   transform: scale(0.97);
-}
+}
+
+/* Golden Ambient Shimmer for Hero Location Badge */
+@keyframes goldenShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.golden-shimmer-badge {
+  background: linear-gradient(
+    90deg, 
+    rgba(15, 23, 42, 0.55) 0%, 
+    rgba(217, 119, 6, 0.45) 35%, 
+    rgba(254, 240, 138, 0.7) 50%, 
+    rgba(217, 119, 6, 0.45) 65%, 
+    rgba(15, 23, 42, 0.55) 100%
+  ) !important;
+  background-size: 250% 100% !important;
+  animation: goldenShimmer 5s infinite ease-in-out !important;
+}
+

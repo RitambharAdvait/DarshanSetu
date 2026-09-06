@@ -281,18 +281,20 @@ const PilgrimPortal = ({
             }}
           >
             <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 14px',
-                borderRadius: '20px',
-                backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                width: 'fit-content',
-                border: '1px solid rgba(255, 255, 255, 0.3)'
-              }}>
+              <div 
+                className="golden-shimmer-badge"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '5px 14px',
+                  borderRadius: '20px',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                  width: 'fit-content',
+                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
                 <MapPin size={13} color="#fde047" />
                 <span style={{ fontSize: '11px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
                   {selectedSite.toUpperCase()} DHAM
