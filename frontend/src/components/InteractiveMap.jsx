@@ -105,12 +105,14 @@ const InteractiveMap = ({ filters, setFilters, selectedSite = 'dwarka', stats })
           });
 
           const tileUrl = mapType === 'satellite' 
-            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
             : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
           window.L.tileLayer(tileUrl, {
-            attribution: mapType === 'satellite' ? 'Esri World Imagery' : 'CARTO & OpenStreetMap',
-            maxZoom: 19
+            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'CARTO & OpenStreetMap',
+            maxZoom: 21,
+            maxNativeZoom: mapType === 'satellite' ? 20 : 18,
+            subdomains: ['a', 'b', 'c']
           }).addTo(map);
 
           mapInstanceRef.current = map;
@@ -123,12 +125,14 @@ const InteractiveMap = ({ filters, setFilters, selectedSite = 'dwarka', stats })
           });
 
           const tileUrl = mapType === 'satellite' 
-            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            ? 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
             : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
           window.L.tileLayer(tileUrl, {
-            attribution: mapType === 'satellite' ? 'Esri World Imagery' : 'CARTO & OpenStreetMap',
-            maxZoom: 19
+            attribution: mapType === 'satellite' ? 'Google Satellite & Hybrid Ground Imagery' : 'CARTO & OpenStreetMap',
+            maxZoom: 21,
+            maxNativeZoom: mapType === 'satellite' ? 20 : 18,
+            subdomains: ['a', 'b', 'c']
           }).addTo(mapInstanceRef.current);
 
           mapInstanceRef.current.setView([telemetry.center.lat, telemetry.center.lng], 17);

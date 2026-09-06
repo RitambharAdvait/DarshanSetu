@@ -193,17 +193,29 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
         }
       });
 
-      const tileUrl = mapLayer === 'satellite'
-        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      let tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+      let tileAttribution = 'Map data &copy; Google Satellite Imagery';
+      let maxNativeZoom = 20;
 
-      const tileAttribution = mapLayer === 'satellite'
-        ? 'Tiles &copy; Esri &mdash; High Resolution Satellite Ground Imagery'
-        : 'Tiles &copy; CARTO & OpenStreetMap contributors';
+      if (mapLayer === 'satellite') {
+        tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+        tileAttribution = 'Imagery &copy; Google Satellite & Hybrid Ground View';
+        maxNativeZoom = 20;
+      } else if (mapLayer === 'street') {
+        tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png';
+        tileAttribution = 'Map data &copy; OpenStreetMap contributors';
+        maxNativeZoom = 18;
+      } else if (mapLayer === 'esri') {
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        tileAttribution = 'Tiles &copy; Esri &mdash; World Imagery';
+        maxNativeZoom = 17;
+      }
 
       L.tileLayer(tileUrl, {
         attribution: tileAttribution,
-        maxZoom: 19
+        maxZoom: 21,
+        maxNativeZoom: maxNativeZoom,
+        subdomains: ['a', 'b', 'c']
       }).addTo(mapInstanceRef.current);
 
       // Render Checkpoint Markers
@@ -390,7 +402,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
                 cursor: 'pointer'
               }}
             >
-              🛰️ Esri Satellite
+              🛰️ Google Satellite HD
             </button>
             <button
               onClick={() => setMapLayer('street')}
@@ -405,7 +417,22 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
                 cursor: 'pointer'
               }}
             >
-              🗺️ Clean Street
+              🗺️ Detailed Street
+            </button>
+            <button
+              onClick={() => setMapLayer('esri')}
+              style={{
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: mapLayer === 'esri' ? '#2563eb' : 'transparent',
+                color: '#ffffff',
+                fontSize: '11px',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              ⛰️ Esri Satellite
             </button>
             <a
               href={config.gmapsUrl}
