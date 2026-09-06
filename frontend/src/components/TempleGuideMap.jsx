@@ -25,22 +25,22 @@ export const TEMPLE_MAP_CONFIGS = {
   dwarka: {
     siteId: 'dwarka',
     name: 'Shri Dwarkadhish Temple (Jagat Mandir)',
-    center: [22.2376, 68.9674],
+    center: [22.23762, 68.96740],
     zoom: 18,
     gmapsUrl: 'https://maps.google.com/?q=Dwarkadhish+Temple+Dwarka',
     checkpoints: [
-      { id: 'sanctum', type: 'sanctum', name: 'Nij Mandir Inner Sanctum (Garbhagriha)', coords: [22.2376, 68.9674], icon: '🕉️', desc: '5-story, 72-pillar central shrine housing Shri Dwarkadhish.', status: 'Open for Darshan' },
-      { id: 'gate_moksha', type: 'gate', name: 'Moksha Dwaar (North 56-Step Entry)', coords: [22.2382, 68.9671], icon: '🚪', desc: 'Main pilgrim entry gate with security body scanners.', status: 'Wait: ~22 mins' },
-      { id: 'gate_swarga', type: 'gate', name: 'Swarga Dwaar (East Exit & Gomti View)', coords: [22.2371, 68.9681], icon: '🚪', desc: 'Exit gate leading towards Gomti Ghat and Sudama Setu.', status: 'Smooth Flow' },
-      { id: 'shoes', type: 'shoes', name: 'Footwear Counter & Locker Stand B', coords: [22.2384, 68.9685], icon: '👟', desc: 'Free safe deposit for shoes, mobile phones, and leather items.', status: 'Free Token Issued' },
-      { id: 'water', type: 'water', name: 'RO Chilled Drinking Water Post', coords: [22.2378, 68.9678], icon: '💧', desc: 'Continuous RO filtered drinking water with paper cones.', status: 'Active 24x7' },
-      { id: 'medical', type: 'medical', name: '108 First Aid & Trauma Post', coords: [22.2385, 68.9668], icon: '🚑', desc: 'Paramedics, emergency stretchers, and cardiac response unit.', status: 'Doctor On-Duty' },
-      { id: 'prasad', type: 'prasad', name: 'Dwarkadhish Chhappan Bhog & Prasad Hall', coords: [22.2370, 68.9668], icon: '🍬', desc: 'Authentic Mahaprasad packets and sacred tulsi bhog.', status: 'Counter Open' },
-      { id: 'wheelchair', type: 'wheelchair', name: 'Senior Citizen & Wheelchair Ramp', coords: [22.2379, 68.9666], icon: '♿', desc: 'Dedicated gentle slope ramp for elderly and differently-abled.', status: 'Priority Seva' },
-      { id: 'helpdesk', type: 'helpdesk', name: 'Police Control & Lost Family Desk', coords: [22.2383, 68.9674], icon: '👮', desc: 'Devbhumi Dwarka Police missing child helpdesk and PA broadcast.', status: 'Officers Active' }
+      { id: 'sanctum', type: 'sanctum', name: 'Nij Mandir Inner Sanctum (Garbhagriha)', coords: [22.23762, 68.96740], icon: '🕉️', desc: '5-story, 72-pillar central shrine housing Shri Dwarkadhish.', status: 'Open for Darshan' },
+      { id: 'gate_moksha', type: 'gate', name: 'Moksha Dwaar (North 56-Step Entry)', coords: [22.23805, 68.96730], icon: '🚪', desc: 'Main pilgrim entry gate with security body scanners.', status: 'Wait: ~22 mins' },
+      { id: 'gate_swarga', type: 'gate', name: 'Swarga Dwaar (South Exit & Gomti View)', coords: [22.23720, 68.96750], icon: '🚪', desc: 'Exit gate leading towards Gomti Ghat and Sudama Setu.', status: 'Smooth Flow' },
+      { id: 'shoes', type: 'shoes', name: 'Footwear Counter & Locker Stand B', coords: [22.23830, 68.96715], icon: '👟', desc: 'Free safe deposit for shoes, mobile phones, and leather items.', status: 'Free Token Issued' },
+      { id: 'water', type: 'water', name: 'RO Chilled Drinking Water Post', coords: [22.23780, 68.96740], icon: '💧', desc: 'Continuous RO filtered drinking water with paper cones.', status: 'Active 24x7' },
+      { id: 'medical', type: 'medical', name: '108 First Aid & Trauma Post', coords: [22.23825, 68.96670], icon: '🚑', desc: 'Paramedics, emergency stretchers, and cardiac response unit.', status: 'Doctor On-Duty' },
+      { id: 'prasad', type: 'prasad', name: 'Dwarkadhish Chhappan Bhog & Prasad Hall', coords: [22.23740, 68.96695], icon: '🍬', desc: 'Authentic Mahaprasad packets and sacred tulsi bhog.', status: 'Counter Open' },
+      { id: 'wheelchair', type: 'wheelchair', name: 'Senior Citizen & Wheelchair Ramp', coords: [22.23795, 68.96690], icon: '♿', desc: 'Dedicated gentle slope ramp for elderly and differently-abled.', status: 'Priority Seva' },
+      { id: 'helpdesk', type: 'helpdesk', name: 'Police Control & Lost Family Desk', coords: [22.23815, 68.96715], icon: '👮', desc: 'Devbhumi Dwarka Police missing child helpdesk and PA broadcast.', status: 'Officers Active' }
     ],
     flowSteps: [
-      { step: 1, title: 'Arrival & Baggage Deposit', desc: 'Deposit shoes and mobiles at Locker Stand B (East Plaza).' },
+      { step: 1, title: 'Arrival & Baggage Deposit', desc: 'Deposit shoes and mobiles at Locker Stand B (North Plaza).' },
       { step: 2, title: 'Security Screening', desc: 'Pass through DFMD scanners at Moksha Dwaar (North Entry).' },
       { step: 3, title: 'Corridor Queue Holding', desc: 'Follow barricaded lanes past Pillar #14 into Sabha Mandap.' },
       { step: 4, title: 'Nij Mandir Darshan', desc: 'Receive divine darshan of Shri Dwarkanath at the sanctum.' },
@@ -52,26 +52,26 @@ export const TEMPLE_MAP_CONFIGS = {
   somnath: {
     siteId: 'somnath',
     name: 'Shri Somnath Jyotirlinga Temple',
-    center: [20.8880, 70.4012],
+    center: [20.88805, 70.40130],
     zoom: 18,
     gmapsUrl: 'https://maps.google.com/?q=Somnath+Temple+Prabhas+Patan',
     checkpoints: [
-      { id: 'sanctum', type: 'sanctum', name: 'Jyotirlinga Garbhagriha & Sabha Mandap', coords: [20.8880, 70.4012], icon: '🔱', desc: 'First among 12 sacred Jyotirlingas, sea-facing sanctum.', status: 'Open for Darshan' },
-      { id: 'gate_digvijay', type: 'gate', name: 'Digvijay Dwaar (Grand East Entrance)', coords: [20.8888, 70.4022], icon: '🚪', desc: 'Majestic ornamental entry gate with automated RFID scanners.', status: 'Wait: ~28 mins' },
-      { id: 'gate_promenade', type: 'gate', name: 'Sea-Facing Promenade Exit Gate', coords: [20.8874, 70.4015], icon: '🚪', desc: 'Coastal promenade exit overlooking the Arabian Sea.', status: 'Smooth Flow' },
-      { id: 'shoes', type: 'shoes', name: 'Somnath Trust Central Cloakroom', coords: [20.8890, 70.4018], icon: '👟', desc: 'Automated locker system & shoe deposit counter.', status: 'Active 24x7' },
-      { id: 'water', type: 'water', name: 'Triveni Chilled RO Water Station', coords: [20.8883, 70.4019], icon: '💧', desc: 'Multiple dispensing taps along the main circumambulation rim.', status: 'Active 24x7' },
-      { id: 'medical', type: 'medical', name: 'Somnath Trust Mobile ICU Unit', coords: [20.8878, 70.4028], icon: '🚑', desc: 'Equipped with defibrillator, oxygen, and on-site physician.', status: 'Doctor On-Duty' },
-      { id: 'prasad', type: 'prasad', name: 'Shri Somnath Laddu & Bilva Prasad Counter', coords: [20.8872, 70.4008], icon: '🍬', desc: 'Certified pure ghee laddu prasad with tamper-proof seal.', status: 'Counter Open' },
-      { id: 'wheelchair', type: 'wheelchair', name: 'Battery Carts & Divyang Priority Lane', coords: [20.8892, 70.4025], icon: '♿', desc: 'Free battery-operated buggies from parking to sanctum gate.', status: 'Free Seva' },
-      { id: 'helpdesk', type: 'helpdesk', name: 'Gir Somnath Police Security Outpost', coords: [20.8886, 70.4016], icon: '👮', desc: '24x7 Police control room & coastal emergency response team.', status: 'Officers Active' }
+      { id: 'sanctum', type: 'sanctum', name: 'Jyotirlinga Garbhagriha & Sabha Mandap', coords: [20.88805, 70.40130], icon: '🔱', desc: 'First among 12 sacred Jyotirlingas, sea-facing sanctum.', status: 'Open for Darshan' },
+      { id: 'gate_digvijay', type: 'gate', name: 'Digvijay Dwaar (Grand East Entrance Gate)', coords: [20.88815, 70.40240], icon: '🚪', desc: 'Majestic ornamental entry portal with RFID scanners.', status: 'Wait: ~28 mins' },
+      { id: 'gate_promenade', type: 'gate', name: 'Sea-Facing Promenade Exit Gate', coords: [20.88745, 70.40145], icon: '🚪', desc: 'Coastal promenade exit overlooking the Arabian Sea.', status: 'Smooth Flow' },
+      { id: 'shoes', type: 'shoes', name: 'Somnath Trust Central Cloakroom & Shoes', coords: [20.88840, 70.40215], icon: '👟', desc: 'Automated locker system & shoe deposit counter.', status: 'Active 24x7' },
+      { id: 'water', type: 'water', name: 'Triveni Chilled RO Water Station', coords: [20.88815, 70.40175], icon: '💧', desc: 'Dispensing taps along the central courtyard path.', status: 'Active 24x7' },
+      { id: 'medical', type: 'medical', name: 'Somnath Trust Mobile ICU & Trauma Unit', coords: [20.88825, 70.40275], icon: '🚑', desc: 'Equipped with defibrillator, oxygen, and on-site physician.', status: 'Doctor On-Duty' },
+      { id: 'prasad', type: 'prasad', name: 'Shri Somnath Laddu & Bilva Prasad Counter', coords: [20.88785, 70.40210], icon: '🍬', desc: 'Certified pure ghee laddu prasad inside the East arcade.', status: 'Counter Open' },
+      { id: 'wheelchair', type: 'wheelchair', name: 'Battery Carts & Divyang Priority Lane', coords: [20.88835, 70.40310], icon: '♿', desc: 'Free battery-operated buggies from parking to gate.', status: 'Free Seva' },
+      { id: 'helpdesk', type: 'helpdesk', name: 'Gir Somnath Police Security Outpost', coords: [20.88820, 70.40225], icon: '👮', desc: '24x7 Police control room at Digvijay Gate reception.', status: 'Officers Active' }
     ],
     flowSteps: [
       { step: 1, title: 'Parking to Cloakroom', desc: 'Board battery buggy from parking to Central Cloakroom.' },
       { step: 2, title: 'Digvijay Dwaar Entry', desc: 'Fast-track security verification at the Grand East Portal.' },
       { step: 3, title: 'Holding Concourse', desc: 'Proceed through shaded queues with ocean breeze ventilation.' },
       { step: 4, title: 'Jyotirlinga Darshan', desc: 'Perform circumambulation and view the holy Jyotirlinga.' },
-      { step: 5, title: 'Prasadam Counter', desc: 'Collect authentic Somnath laddu prasad at Gate 3.' },
+      { step: 5, title: 'Prasadam Counter', desc: 'Collect authentic Somnath laddu prasad at East Arcade.' },
       { step: 6, title: 'Sea Promenade Exit', desc: 'Enjoy the sound-and-light pavilion on the coastal promenade.' }
     ]
   },
@@ -79,19 +79,19 @@ export const TEMPLE_MAP_CONFIGS = {
   ambaji: {
     siteId: 'ambaji',
     name: 'Shri Arasuri Ambaji Shaktipeeth',
-    center: [24.3314, 72.8519],
+    center: [24.32925, 72.84885],
     zoom: 18,
     gmapsUrl: 'https://maps.google.com/?q=Ambaji+Temple+Banaskantha',
     checkpoints: [
-      { id: 'sanctum', type: 'sanctum', name: 'Nij Mandir Suvarna Shikhara Sanctum', coords: [24.3314, 72.8519], icon: '🌺', desc: 'Golden dome sanctum containing the sacred Shree Yantra.', status: 'Open for Darshan' },
-      { id: 'gate_shakti', type: 'gate', name: 'Shakti Dwaar (North Grand Gate 1)', coords: [24.3322, 72.8515], icon: '🚪', desc: 'Main marble gateway with baggage X-ray scanners.', status: 'Wait: ~35 mins' },
-      { id: 'gate_chachar', type: 'gate', name: 'Chachar Chowk Fast Bypass Exit', coords: [24.3310, 72.8524], icon: '🚪', desc: 'Exit courtyard connecting to Gabbar Hill shuttle path.', status: 'Smooth Flow' },
-      { id: 'shoes', type: 'shoes', name: 'Mega Footwear & Locker Counter', coords: [24.3326, 72.8510], icon: '👟', desc: 'High-capacity computerized shoe lockers (10,000 pairs).', status: 'Token Counter' },
-      { id: 'water', type: 'water', name: 'Mountain Mineral RO Dispensers', coords: [24.3318, 72.8522], icon: '💧', desc: 'Purified mineral water stations across Chachar Chowk.', status: 'Active 24x7' },
-      { id: 'medical', type: 'medical', name: 'Banas Mountain Rescue & Trauma Post', coords: [24.3308, 72.8512], icon: '🚑', desc: 'Equipped for high-altitude fatigue, oxygen, and first aid.', status: 'Doctor On-Duty' },
-      { id: 'prasad', type: 'prasad', name: 'Ambaji Famous Mohanthal Prasad Hall', coords: [24.3305, 72.8528], icon: '🍬', desc: 'Fresh GI-tagged pure ghee Mohanthal prasad counter.', status: 'Counter Open' },
-      { id: 'wheelchair', type: 'wheelchair', name: 'Paddayatri & Divyang Seva Ramp', coords: [24.3316, 72.8510], icon: '♿', desc: 'Smooth marble ramp with free attendant wheelchair seva.', status: 'Priority Seva' },
-      { id: 'helpdesk', type: 'helpdesk', name: 'Banaskantha Police Pilgrim Desk', coords: [24.3320, 72.8518], icon: '👮', desc: 'Security supervision, child ID tagging, and lost broadcast.', status: 'Officers Active' }
+      { id: 'sanctum', type: 'sanctum', name: 'Nij Mandir Suvarna Shikhara Sanctum', coords: [24.32925, 72.84885], icon: '🌺', desc: 'Golden dome sanctum containing the sacred Shree Yantra.', status: 'Open for Darshan' },
+      { id: 'gate_shakti', type: 'gate', name: 'Shakti Dwaar (North Grand Gate 1)', coords: [24.32990, 72.84880], icon: '🚪', desc: 'Main marble gateway with baggage X-ray scanners.', status: 'Wait: ~35 mins' },
+      { id: 'gate_chachar', type: 'gate', name: 'Chachar Chowk Fast Bypass Exit', coords: [24.32870, 72.84910], icon: '🚪', desc: 'Exit courtyard connecting to Gabbar Hill shuttle path.', status: 'Smooth Flow' },
+      { id: 'shoes', type: 'shoes', name: 'Mega Footwear & Locker Counter', coords: [24.33030, 72.84860], icon: '👟', desc: 'High-capacity computerized shoe lockers (10,000 pairs).', status: 'Token Counter' },
+      { id: 'water', type: 'water', name: 'Mountain Mineral RO Dispensers', coords: [24.32950, 72.84890], icon: '💧', desc: 'Purified mineral water stations across Chachar Chowk.', status: 'Active 24x7' },
+      { id: 'medical', type: 'medical', name: 'Banas Mountain Rescue & Trauma Post', coords: [24.32900, 72.84930], icon: '🚑', desc: 'Equipped for high-altitude fatigue, oxygen, and first aid.', status: 'Doctor On-Duty' },
+      { id: 'prasad', type: 'prasad', name: 'Ambaji Famous Mohanthal Prasad Hall', coords: [24.32860, 72.84850], icon: '🍬', desc: 'Fresh GI-tagged pure ghee Mohanthal prasad counter.', status: 'Counter Open' },
+      { id: 'wheelchair', type: 'wheelchair', name: 'Paddayatri & Divyang Seva Ramp', coords: [24.32970, 72.84865], icon: '♿', desc: 'Smooth marble ramp with free attendant wheelchair seva.', status: 'Priority Seva' },
+      { id: 'helpdesk', type: 'helpdesk', name: 'Banaskantha Police Pilgrim Desk', coords: [24.33000, 72.84890], icon: '👮', desc: 'Security supervision, child ID tagging, and lost broadcast.', status: 'Officers Active' }
     ],
     flowSteps: [
       { step: 1, title: 'North Plaza Arrival', desc: 'Deposit shoes at the computerized Mega Token Counter.' },
@@ -106,19 +106,19 @@ export const TEMPLE_MAP_CONFIGS = {
   pavagadh: {
     siteId: 'pavagadh',
     name: 'Shri Mahakali Dham (Pavagadh Hill)',
-    center: [22.4649, 73.5350],
+    center: [22.45945, 73.52515],
     zoom: 18,
     gmapsUrl: 'https://maps.google.com/?q=Kalika+Mata+Temple+Pavagadh',
     checkpoints: [
-      { id: 'sanctum', type: 'sanctum', name: 'Summit Cliff Mahakali Sanctum Altar', coords: [22.4649, 73.5350], icon: '⛰️', desc: '800m cliff summit altar of Goddess Mahakali.', status: 'Open for Darshan' },
-      { id: 'gate_ropeway', type: 'gate', name: 'Upper Ropeway Terminal Entry Gate', coords: [22.4642, 73.5335], icon: '🚡', desc: 'Direct entry platform from the Udan Khatola cable car.', status: 'Wait: ~40 mins' },
-      { id: 'gate_stairs', type: 'gate', name: 'Saat Kaman Heritage Stairway Gate', coords: [22.4630, 73.5315], icon: '🚪', desc: 'Arrival point for devotees climbing the 2,000 heritage steps.', status: 'Moderate Flow' },
-      { id: 'shoes', type: 'shoes', name: 'Hilltop & Machi Footwear Stations', coords: [22.4638, 73.5328], icon: '👟', desc: 'Locker hubs located at Machi base and the upper plateau.', status: 'Free Token' },
-      { id: 'water', type: 'water', name: 'High-Altitude Mineral Water Kiosk', coords: [22.4645, 73.5342], icon: '💧', desc: 'Cooled mountain water dispensers with high-volume filters.', status: 'Active 24x7' },
-      { id: 'medical', type: 'medical', name: 'Mountain Rescue & Stretcher Squad', coords: [22.4640, 73.5330], icon: '🚑', desc: 'Specialized high-angle rescue team and mobile oxygen post.', status: 'Rescue Team On-Duty' },
-      { id: 'prasad', type: 'prasad', name: 'Maa Kalika Authentic Chhatra Bhog', coords: [22.4652, 73.5355], icon: '🍬', desc: 'Traditional coconut, peda, and mataji chunari counter.', status: 'Counter Open' },
-      { id: 'wheelchair', type: 'wheelchair', name: 'Ropeway Priority Boarding Desk', coords: [22.4610, 73.5280], icon: '♿', desc: 'Dedicated priority boarding cabins for seniors & pregnant women.', status: 'Priority Seva' },
-      { id: 'helpdesk', type: 'helpdesk', name: 'Panchmahal Police Hill Control Post', coords: [22.4635, 73.5320], icon: '👮', desc: 'Summit surveillance tower, hill safety alerts, and police squad.', status: 'Officers Active' }
+      { id: 'sanctum', type: 'sanctum', name: 'Summit Cliff Mahakali Sanctum Altar', coords: [22.45945, 73.52515], icon: '⛰️', desc: '800m cliff summit altar of Goddess Mahakali.', status: 'Open for Darshan' },
+      { id: 'gate_ropeway', type: 'gate', name: 'Upper Ropeway Terminal Entry Gate', coords: [22.46010, 73.52440], icon: '🚡', desc: 'Direct entry platform from the Udan Khatola cable car.', status: 'Wait: ~40 mins' },
+      { id: 'gate_stairs', type: 'gate', name: 'Saat Kaman Heritage Stairway Gate', coords: [22.45860, 73.52570], icon: '🚪', desc: 'Arrival point for devotees climbing the 2,000 heritage steps.', status: 'Moderate Flow' },
+      { id: 'shoes', type: 'shoes', name: 'Hilltop & Machi Footwear Stations', coords: [22.45980, 73.52460], icon: '👟', desc: 'Locker hubs located at upper plateau terrace.', status: 'Free Token' },
+      { id: 'water', type: 'water', name: 'High-Altitude Mineral Water Kiosk', coords: [22.45930, 73.52500], icon: '💧', desc: 'Cooled mountain water dispensers with high-volume filters.', status: 'Active 24x7' },
+      { id: 'medical', type: 'medical', name: 'Mountain Rescue & Stretcher Squad', coords: [22.45900, 73.52450], icon: '🚑', desc: 'Specialized high-angle rescue team and mobile oxygen post.', status: 'Rescue Team On-Duty' },
+      { id: 'prasad', type: 'prasad', name: 'Maa Kalika Authentic Chhatra Bhog', coords: [22.45955, 73.52540], icon: '🍬', desc: 'Traditional coconut, peda, and mataji chunari counter.', status: 'Counter Open' },
+      { id: 'wheelchair', type: 'wheelchair', name: 'Ropeway Priority Boarding Desk', coords: [22.46020, 73.52430], icon: '♿', desc: 'Dedicated priority boarding cabins for seniors & pregnant women.', status: 'Priority Seva' },
+      { id: 'helpdesk', type: 'helpdesk', name: 'Panchmahal Police Hill Control Post', coords: [22.45920, 73.52480], icon: '👮', desc: 'Summit surveillance tower, hill safety alerts, and police squad.', status: 'Officers Active' }
     ],
     flowSteps: [
       { step: 1, title: 'Machi Base Ascent', desc: 'Choose between Udan Khatola Ropeway (6 mins) or Heritage Steps.' },
