@@ -394,13 +394,13 @@ body {
   animation: sosBeacon 1.8s infinite ease-out;
 }
 
-/* Custom Marker Pin Animation on Leaflet Maps */
-.custom-temple-pin {
+/* Custom Marker Pin Animation on Leaflet Maps (targets inner element to preserve Leaflet translate3d positioning) */
+.custom-temple-pin-inner {
   animation: pinBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.custom-temple-pin:hover {
-  transform: scale(1.18) !important;
-  z-index: 1000 !important;
+.custom-temple-pin-inner:hover {
+  transform: scale(1.25) !important;
 }
 
 /* Button Click Tactile Bounce */

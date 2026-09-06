@@ -231,7 +231,7 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
           else if (cp.type === 'helpdesk') pinColor = '#1e40af';
 
           const customHtml = `
-            <div style="
+            <div class="custom-temple-pin-inner" style="
               width: 34px; 
               height: 34px; 
               border-radius: 50%; 
@@ -243,7 +243,6 @@ const TempleGuideMap = ({ selectedSite = 'dwarka', onOpenSosModal }) => {
               justify-content: center; 
               font-size: 16px;
               cursor: pointer;
-              transition: transform 0.2s ease;
             ">
               ${cp.icon}
             </div>
